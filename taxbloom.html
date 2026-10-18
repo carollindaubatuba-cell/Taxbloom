@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TaxBloom — Make tax season feel a lot less stressful</title>
+<meta name="description" content="TaxBloom helps self-employed people organize income, expenses, receipts, mileage, and tax estimates all year long. Your data stays on your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" async></script>
+<style>
+:root{
+  --bg:#FBF6EF; --bg-2:#F5ECE1; --card:#FFFFFF; --ink:#2D2629; --ink-2:#6B5F64;
+  --line:#E9DCD2; --line-2:#F1E7DE; --blush:#F9E1E3; --blush-2:#F0C3CB; --petal-track:#F6E7E8;
+  --rose:#B5566B; --rose-text:#9C4358; --btn:#9C4358; --btn-hover:#863549; --on-btn:#FFFFFF;
+  --good:#2F6B4D; --good-bg:#E3F0E7; --warn:#8A5E0C; --warn-bg:#FBEFD3; --bad:#A03A40; --bad-bg:#FBE2E2;
+  --focus:#7A2E42; --scrim:rgba(45,38,41,.46);
+  --shadow:0 1px 2px rgba(110,60,70,.05),0 8px 24px rgba(110,60,70,.07);
+  --shadow-up:0 2px 4px rgba(110,60,70,.06),0 14px 32px rgba(110,60,70,.12);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root[data-theme="dark"]{
+  --bg:#1E191B; --bg-2:#261F22; --card:#2A2326; --ink:#F4EAE6; --ink-2:#BFB1B5;
+  --line:#3C3236; --line-2:#342B2F; --blush:#3B2831; --blush-2:#5A3441; --petal-track:#3A2E33;
+  --rose:#D9879B; --rose-text:#F0AEBF; --btn:#E59AAE; --btn-hover:#F0AEBF; --on-btn:#2A1B20;
+  --good:#86CBA2; --good-bg:#21352A; --warn:#E5BA62; --warn-bg:#3A3120; --bad:#F29CA0; --bad-bg:#3E2527;
+  --focus:#F6C1CE; --scrim:rgba(0,0,0,.6);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+  --shadow-up:0 2px 4px rgba(0,0,0,.35),0 14px 32px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1E191B; --bg-2:#261F22; --card:#2A2326; --ink:#F4EAE6; --ink-2:#BFB1B5;
+    --line:#3C3236; --line-2:#342B2F; --blush:#3B2831; --blush-2:#5A3441; --petal-track:#3A2E33;
+    --rose:#D9879B; --rose-text:#F0AEBF; --btn:#E59AAE; --btn-hover:#F0AEBF; --on-btn:#2A1B20;
+    --good:#86CBA2; --good-bg:#21352A; --warn:#E5BA62; --warn-bg:#3A3120; --bad:#F29CA0; --bad-bg:#3E2527;
+    --focus:#F6C1CE; --scrim:rgba(0,0,0,.6);
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+    --shadow-up:0 2px 4px rgba(0,0,0,.35),0 14px 32px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh}
+h1,h2,h3,h4,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--btn);color:var(--on-btn);padding:10px 16px;border-radius:10px;z-index:200}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ic{flex:none;display:block}
+[hidden]{display:none!important}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:28px 16px 22px;background:var(--bg);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 12px 22px;font:600 24px/1 var(--serif);letter-spacing:-.01em}
+.brand .bloom-mark{font-size:24px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:0;border-radius:12px;background:transparent;color:var(--ink-2);font-weight:500;font-size:15.5px;text-align:left;cursor:pointer;transition:background .15s,color .15s}
+.nav button:hover{background:var(--bg-2);color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--blush);color:var(--rose-text);font-weight:600}
+.side-foot{margin-top:auto;padding:16px 12px 0;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-2);display:grid;gap:6px}
+.side-foot strong{color:var(--ink);font-weight:600}
+.content{min-width:0;display:flex;flex-direction:column;min-height:100vh}
+#main{padding:40px clamp(20px,4.2vw,60px) 12px;width:100%;max-width:1220px;outline:none;flex:1}
+.page{display:flex;flex-direction:column;gap:24px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.page-title{font:600 clamp(30px,3.4vw,40px)/1.12 var(--serif);letter-spacing:-.015em;outline:none}
+.page-sub{color:var(--ink-2);margin-top:8px;max-width:60ch}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.disclaimer{padding:22px clamp(20px,4.2vw,60px) 28px;font-size:12.8px;line-height:1.55;color:var(--ink-2);max-width:1220px;width:100%}
+.disclaimer p{max-width:100ch;border-top:1px solid var(--line);padding-top:16px}
+.bottomnav,.fab{display:none}
+.biz-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--blush);color:var(--rose-text);font:inherit;font-size:13px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:8px;cursor:pointer;max-width:100%}
+.biz-pill.static{cursor:default;background:var(--card);color:var(--ink-2)}
+.side-biz{margin:0 0 12px}
+.biz-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:10px 12px;border-radius:12px;cursor:pointer;text-align:left}
+.biz-btn span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bizbar{display:none}
+.opt-list{display:grid;gap:8px;margin:0 0 14px;padding:0;list-style:none}
+.opt-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.opt-row .nm{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600}
+.opt-row .lock{font-size:12.5px;color:var(--ink-2)}
+.opt-add{display:flex;gap:8px;flex-wrap:wrap}
+.opt-add input{flex:1;min-width:160px}
+.opt-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+
+/* ---------- primitives ---------- */
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:20px;padding:24px;box-shadow:var(--shadow);transition:box-shadow .2s ease}
+.card:hover{box-shadow:var(--shadow-up)}
+.card-title{font:600 21px/1.25 var(--serif);letter-spacing:-.005em}
+.card-sub{color:var(--ink-2);font-size:14.5px;margin-top:4px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:11px 18px;border-radius:12px;border:1px solid transparent;background:transparent;font-weight:600;font-size:14.5px;line-height:1.1;cursor:pointer;transition:background .15s,box-shadow .15s,border-color .15s,transform .15s;text-decoration:none;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--btn);color:var(--on-btn)}
+.btn-primary:hover{background:var(--btn-hover);box-shadow:0 6px 16px rgba(156,67,88,.24)}
+.btn-soft{background:var(--blush);color:var(--rose-text)}
+.btn-soft:hover{background:var(--blush-2)}
+.btn-ghost{border-color:var(--line);color:var(--ink);background:var(--card)}
+.btn-ghost:hover{border-color:var(--rose);background:var(--bg-2)}
+.btn-danger{background:var(--bad);color:#fff}
+.btn-danger:hover{filter:brightness(.92)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+.btn-sm{min-height:36px;padding:7px 12px;font-size:13.5px;border-radius:10px}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:0;background:transparent;color:var(--ink-2);display:inline-grid;place-items:center;cursor:pointer;transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--blush);color:var(--rose-text)}
+.icon-btn.danger:hover{background:var(--bad-bg);color:var(--bad)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:var(--blush);color:var(--rose-text);white-space:nowrap}
+.badge.good{background:var(--good-bg);color:var(--good)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.bad{background:var(--bad-bg);color:var(--bad)}
+.badge.plain{background:var(--bg-2);color:var(--ink-2)}
+.link{background:none;border:0;padding:0;color:var(--rose-text);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.muted{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.neg{color:var(--bad)}
+
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.grid-reserve{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px}
+.metric{padding:20px 22px;display:flex;flex-direction:column;gap:6px;transition:box-shadow .2s,transform .2s}
+.metric:hover{transform:translateY(-2px)}
+.metric .lbl{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:14px;font-weight:500}
+.metric .lbl .dot{width:30px;height:30px;border-radius:10px;background:var(--blush);color:var(--rose-text);display:grid;place-items:center}
+.metric .val{font:600 clamp(24px,2.5vw,32px)/1.1 var(--serif);letter-spacing:-.01em;margin-top:6px;font-variant-numeric:tabular-nums lining-nums}
+.metric .sub{font-size:13px;color:var(--ink-2)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl th{text-align:left;font-weight:600;font-size:13px;color:var(--ink-2);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:14px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.tbl tbody tr:hover{background:color-mix(in srgb,var(--blush) 35%,transparent)}
+.tbl .r{text-align:right}
+.tbl .desc{font-weight:600}
+.tbl .note{display:block;font-weight:400;color:var(--ink-2);font-size:13px;margin-top:2px;max-width:46ch}
+.tbl td.actions{white-space:nowrap;text-align:right;padding:8px 8px}
+.tbl tfoot td{font-weight:600;border-bottom:0;padding-top:16px}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.field .flabel{font-weight:600;font-size:14px}
+.field .opt{font-weight:400;color:var(--ink-2)}
+.field input[type=text],.field input[type=date],.field input[type=number],.field select,.field textarea,.search input{width:100%;min-height:46px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);transition:border-color .15s,box-shadow .15s}
+.field textarea{resize:vertical;min-height:84px}
+.field input:hover,.field select:hover,.field textarea:hover{border-color:var(--blush-2)}
+.field input:focus,.field select:focus,.field textarea:focus,.search input:focus{outline:none;border-color:var(--rose);box-shadow:0 0 0 3px color-mix(in srgb,var(--rose) 28%,transparent)}
+.field input[aria-invalid="true"],.field select[aria-invalid="true"]{border-color:var(--bad)}
+.field input[type=file]{padding:10px;border:1px dashed var(--blush-2);border-radius:12px;background:var(--bg);width:100%}
+.hint{font-size:13px;color:var(--ink-2)}
+.err{font-size:13px;color:var(--bad);font-weight:500;min-height:0}
+.err:empty{display:none}
+.money-wrap{position:relative}
+.money-wrap>span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-2);pointer-events:none}
+.money-wrap input{padding-left:28px!important}
+.suffix-wrap{position:relative}
+.suffix-wrap>span{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--ink-2);pointer-events:none;font-size:14px}
+.suffix-wrap input{padding-right:78px!important}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.form-grid .span-2{grid-column:1/-1}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--btn);flex:none}
+.preview{background:var(--blush);color:var(--rose-text);border-radius:12px;padding:12px 14px;font-weight:600;font-size:14.5px}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.search{position:relative;flex:1 1 240px;max-width:380px}
+.search input{padding-left:42px}
+.search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-2)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,border-color .15s,color .15s;min-height:38px}
+.chip:hover{border-color:var(--rose)}
+.chip[aria-pressed="true"]{background:var(--btn);border-color:var(--btn);color:var(--on-btn)}
+.pick{position:relative;display:inline-block}
+.pick input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.pick span{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:15px;transition:all .15s;min-height:44px}
+.pick:hover span{border-color:var(--rose)}
+.pick input:checked+span{background:var(--blush);border-color:var(--rose);color:var(--rose-text)}
+.pick input:focus-visible+span{outline:3px solid var(--focus);outline-offset:2px}
+.pick.block span{display:flex;width:100%;border-radius:14px;padding:14px 18px}
+.switch{display:inline-flex;align-items:center;gap:10px;background:none;border:0;cursor:pointer;font-weight:600;font-size:14.5px;padding:6px 0}
+.switch .track{width:44px;height:26px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch[aria-checked="true"] .track{background:var(--btn)}
+.switch[aria-checked="true"] .track::after{transform:translateX(18px)}
+.seg{display:inline-flex;background:var(--bg-2);border-radius:14px;padding:4px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:9px 16px;border-radius:11px;font-weight:600;font-size:14.5px;color:var(--ink-2);cursor:pointer;min-height:40px}
+.seg button[aria-selected="true"]{background:var(--card);color:var(--rose-text);box-shadow:var(--shadow)}
+
+/* progress + status */
+.bar{height:12px;border-radius:999px;background:var(--blush);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;background:var(--rose);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.kv{display:grid;gap:0}
+.kv>div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line-2);align-items:baseline}
+.kv>div:last-child{border-bottom:0}
+.kv .k{color:var(--ink-2)}
+.kv .v{font-weight:600;font-variant-numeric:tabular-nums lining-nums;text-align:right}
+.kv .total{font-size:17px}
+.kv .total .k{color:var(--ink);font-weight:600}
+.status{display:flex;gap:14px;align-items:flex-start}
+.status .light{font-size:26px;line-height:1}
+.status h3{font:600 20px/1.2 var(--serif)}
+.notice{background:var(--bg-2);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--ink-2)}
+.notice strong{color:var(--ink)}
+.notice.warn{background:var(--warn-bg);color:var(--warn)}
+.banner{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--blush);color:var(--rose-text);border-radius:16px;padding:14px 18px;font-weight:600}
+.empty{text-align:center;padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty h3{font:600 22px/1.25 var(--serif)}
+.empty p{color:var(--ink-2);max-width:44ch}
+.empty .btn{margin-top:10px}
+.empty-emoji{font-size:40px;line-height:1}
+.big{font:600 34px/1.1 var(--serif);letter-spacing:-.01em;font-variant-numeric:tabular-nums lining-nums}
+.summary-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.chart svg{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line-2);stroke-width:1}
+.chart .axis{fill:var(--ink-2);font:500 11.5px var(--sans)}
+.chart .c-inc{fill:var(--rose)}
+.chart .c-exp{fill:var(--blush-2)}
+.chart .c-line{stroke:var(--ink);stroke-width:2;fill:none;stroke-linejoin:round}
+.chart .c-dot{fill:var(--card);stroke:var(--ink);stroke-width:2}
+.chart details{margin-top:12px;font-size:14px}
+.chart summary{cursor:pointer;color:var(--rose-text);font-weight:600}
+details.about{border:1px solid var(--line);border-radius:14px;padding:4px 18px;background:var(--card)}
+details.about summary{cursor:pointer;font-weight:600;padding:12px 0;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.about summary::-webkit-details-marker{display:none}
+details.about summary::after{content:"+";font-size:22px;color:var(--rose-text);line-height:1}
+details.about[open] summary::after{content:"–"}
+details.about .body{padding:2px 0 16px;color:var(--ink-2);font-size:14.5px;display:grid;gap:10px}
+details.about ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.method{list-style:none;margin:0;padding:0;counter-reset:m}
+.method li{display:grid;grid-template-columns:1fr auto;gap:2px 16px;padding:11px 0;border-bottom:1px solid var(--line-2);font-size:14.5px}
+.method li:last-child{border-bottom:0}
+.method .how{grid-column:1;color:var(--ink-2);font-size:13px}
+.method .amt{grid-row:1/3;grid-column:2;font-weight:600;align-self:center;font-variant-numeric:tabular-nums lining-nums}
+.bars-list{display:grid;gap:14px}
+.bars-list .row{display:grid;gap:6px}
+.bars-list .row .top{display:flex;justify-content:space-between;gap:12px;font-weight:600}
+.bars-list .bar{height:8px}
+
+/* receipts */
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.rec{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.rec .thumb{height:170px;background:var(--bg-2);display:grid;place-items:center;color:var(--rose);overflow:hidden;position:relative}
+.rec .thumb img{width:100%;height:100%;object-fit:cover}
+.rec .thumb .ph{display:grid;place-items:center;gap:6px;font-size:13px;color:var(--ink-2);font-weight:600}
+.rec .body{padding:16px 18px;display:grid;gap:6px;flex:1}
+.rec .m{font:600 18px/1.25 var(--serif)}
+.rec .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.rec .acts{display:flex;gap:6px;padding:0 12px 12px}
+
+/* calendar */
+.quarters{display:grid;gap:14px}
+.q{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr)) auto;gap:14px;align-items:center;padding:18px 20px;border:1px solid var(--line-2);border-radius:16px;background:var(--card)}
+.q .qn{font:600 18px/1.2 var(--serif)}
+.q .lab{font-size:12.5px;color:var(--ink-2)}
+.q .v{font-weight:600;font-variant-numeric:tabular-nums lining-nums}
+
+/* checklist */
+.chk-group{display:grid;gap:4px}
+.chk-group h3{font:600 16px/1.3 var(--sans);margin:16px 0 4px}
+.chk{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;cursor:pointer}
+.chk:hover{background:var(--bg-2)}
+.chk input{width:20px;height:20px;accent-color:var(--btn);flex:none}
+.chk .t{flex:1}
+.chk input:checked+.t{color:var(--ink-2);text-decoration:line-through}
+
+/* modal + toast */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;animation:fade .18s ease}
+.modal{background:var(--card);border-radius:24px;width:100%;max-width:580px;max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 24px 70px rgba(0,0,0,.28);animation:rise .22s cubic-bezier(.2,.8,.2,1);outline:none}
+.modal.sm{max-width:440px}
+.modal.lg{max-width:760px}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:24px 26px 0}
+.modal-head h2{font:600 24px/1.2 var(--serif)}
+.modal-body{padding:18px 26px 26px;display:grid;gap:16px}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding-top:6px}
+.sheet-list{display:grid;gap:8px}
+.sheet-list button{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600;font-size:16px;text-align:left}
+.sheet-list button:hover{border-color:var(--rose);background:var(--bg-2)}
+.sheet-list .dot{width:36px;height:36px;border-radius:11px;background:var(--blush);color:var(--rose-text);display:grid;place-items:center}
+.view-img{width:100%;max-height:60vh;object-fit:contain;border-radius:14px;background:var(--bg-2)}
+.view-pdf{width:100%;height:60vh;border:0;border-radius:14px;background:var(--bg-2)}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;display:grid;gap:10px;z-index:300;width:min(92vw,420px);pointer-events:none}
+.toast{background:var(--ink);color:var(--bg);padding:13px 18px;border-radius:14px;font-weight:600;font-size:14.5px;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:rise .22s ease;pointer-events:auto}
+.toast.warn{background:var(--warn);color:#fff}
+.toast.bad{background:var(--bad);color:#fff}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* bloom */
+.bloom{display:block}
+.bloom .petal-track{fill:var(--petal-track)}
+.bloom .petal-fill{fill:var(--rose)}
+.bloom .core{fill:var(--card)}
+.bloom text{font-family:var(--serif);font-weight:600;fill:var(--ink)}
+.bloom.anim .petal-fill{animation:petal .55s ease both;animation-delay:var(--d)}
+@keyframes petal{from{opacity:0}to{opacity:var(--f)}}
+.reserve-layout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center}
+
+/* gate: landing + onboarding */
+.gate{min-height:100vh;display:flex;flex-direction:column}
+.land{width:100%;max-width:1160px;margin:0 auto;padding:22px clamp(20px,4vw,48px) 20px;flex:1}
+.land-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px}
+.land-top .brand{padding:0}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(28px,5vw,72px);align-items:center;padding:clamp(36px,7vw,88px) 0 clamp(36px,6vw,72px)}
+.hero h1{font:600 clamp(40px,6vw,68px)/1.04 var(--serif);letter-spacing:-.025em;max-width:15ch}
+.hero .lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink-2);margin-top:22px;max-width:48ch}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.hero .fine{margin-top:18px;font-size:14px;color:var(--ink-2)}
+.hero .sample{text-align:center;display:grid;justify-items:center;gap:12px;padding:30px 26px}
+.hero .sample .big{font-size:30px}
+.land h2{font:600 clamp(26px,3vw,34px)/1.15 var(--serif);letter-spacing:-.01em}
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:28px;border-top:1px solid var(--line)}
+.feat>div{padding:26px 26px 26px 0;border-bottom:1px solid var(--line);display:grid;gap:8px;align-content:start}
+.feat .dot{width:42px;height:42px;border-radius:13px;background:var(--blush);color:var(--rose-text);display:grid;place-items:center;margin-bottom:6px}
+.feat h3{font:600 19px/1.2 var(--serif)}
+.feat p{color:var(--ink-2);font-size:15px}
+.final-cta{margin:56px 0 24px;background:var(--blush);border-radius:28px;padding:clamp(32px,5vw,56px);display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.final-cta h2{max-width:20ch}
+.ob{width:100%;max-width:600px;margin:0 auto;padding:clamp(20px,5vw,56px) 20px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.ob .card{padding:clamp(24px,4vw,40px);display:grid;gap:22px}
+.ob h1{font:600 clamp(28px,4vw,36px)/1.15 var(--serif);letter-spacing:-.015em;outline:none}
+.ob .steps{display:flex;gap:6px}
+.ob .steps i{flex:1;height:5px;border-radius:99px;background:var(--line)}
+.ob .steps i.on{background:var(--rose)}
+.ob .nav-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ob .picks{display:flex;gap:10px;flex-wrap:wrap}
+.ob .stack{display:grid;gap:10px}
+.ob .welcome{font-size:18px;color:var(--ink-2)}
+
+@media (max-width:1100px){
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-reserve{grid-template-columns:1fr}
+  .q{grid-template-columns:1fr 1fr}
+  .q .act{grid-column:1/-1}
+}
+@media (max-width:860px){
+  .shell{display:block}
+  .sidebar{display:none}
+  #main{padding:22px 18px 12px}
+  .disclaimer{padding:18px 18px 150px}
+  .bizbar{display:block;padding:10px 16px 0}
+  .bizbar .biz-btn{padding:8px 12px}
+  .bottomnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:50;box-shadow:0 -6px 24px rgba(110,60,70,.08)}
+  .bottomnav button{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:var(--ink-2);font-size:11.5px;font-weight:600;padding:7px 2px;border-radius:12px;cursor:pointer;min-height:52px}
+  .bottomnav button[aria-current="page"]{color:var(--rose-text);background:var(--blush)}
+  .fab{display:grid;place-items:center;position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--btn);color:var(--on-btn);box-shadow:0 10px 26px rgba(156,67,88,.4);z-index:60;cursor:pointer}
+  .fab:active{transform:scale(.96)}
+  #toasts{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+  .hero{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr 1fr}
+  .reserve-layout{grid-template-columns:1fr;justify-items:center;text-align:left}
+  .reserve-layout>div:last-child{width:100%}
+  .page-head{align-items:flex-start}
+}
+@media (max-width:640px){
+  .scrim{align-items:flex-end;padding:0}
+  .modal{border-radius:24px 24px 0 0;max-width:none;max-height:92vh;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .modal-head{padding:20px 20px 0}.modal-body{padding:14px 20px 22px}
+  .form-grid{grid-template-columns:1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr}
+  .card{padding:20px}
+  .metric{padding:16px}
+  .metric .lbl .dot{display:none}
+  /* tables become stacked cards */
+  .tbl thead{display:none}
+  .tbl,.tbl tbody,.tbl tr,.tbl td,.tbl tfoot{display:block;width:100%}
+  .tbl tr{padding:14px 4px;border-bottom:1px solid var(--line-2)}
+  .tbl td{border:0;padding:3px 4px;display:flex;justify-content:space-between;gap:14px;text-align:right}
+  .tbl td::before{content:attr(data-label);color:var(--ink-2);font-size:13px;font-weight:500;text-align:left;flex:none}
+  .tbl td.first{display:block;text-align:left}
+  .tbl td.first::before{display:none}
+  .tbl td.actions{justify-content:flex-end}
+  .tbl td.actions::before{display:none}
+  .tbl .note{max-width:none}
+  .tbl tfoot td{display:flex}
+  .q{grid-template-columns:1fr}
+  .ob .nav-row .btn{flex:1}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media print{
+  html,body{background:#fff!important;color:#000}
+  .sidebar,.bottomnav,.fab,.noprint,#toasts,.head-actions{display:none!important}
+  .shell{display:block}
+  #main{padding:0}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .disclaimer{padding:12px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-act="skip">Skip to main content</a>
+<noscript><p style="padding:24px">TaxBloom needs JavaScript to run. Everything stays on your device.</p></noscript>
+
+<div id="gate" class="gate" hidden></div>
+
+<div id="shell" class="shell" hidden>
+  <aside class="sidebar" aria-label="Sidebar">
+    <div class="brand"><span class="bloom-mark" aria-hidden="true">🌸</span><span>TaxBloom</span></div>
+    <div class="side-biz" id="sideBiz"></div>
+    <nav class="nav" id="sideNav" aria-label="Main"></nav>
+    <div class="side-foot">
+      <div><strong>Tax Year: <span id="sideYear">2026</span></strong></div>
+      <div>Privacy:<br>“Your data stays on this device.”</div>
+    </div>
+  </aside>
+  <div class="content">
+    <div class="bizbar" id="bizBar"></div>
+    <main id="main" tabindex="-1"><div id="view"></div></main>
+    <footer class="disclaimer"><p>TaxBloom is an educational and organizational tool, not tax, legal, or financial advice. Tax estimates are simplified and may not reflect your actual tax liability. Tax laws and rates can change. Verify current IRS guidance or consult a qualified tax professional.</p></footer>
+  </div>
+  <nav class="bottomnav" id="bottomNav" aria-label="Main mobile"></nav>
+  <button class="fab" data-act="quickAdd" aria-label="Quick add: income, expense, receipt or trip"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   CONSTANTS — 2026 federal figures (IRS Rev. Proc. 2025-32, SSA, Form 1040-ES)
+   ===================================================================== */
+var STORAGE_KEY='taxbloom:v2';
+var OLD_STORAGE_KEY='taxbloom:v1'; /* read once to carry earlier data forward; never overwritten */
+var TAX_YEAR=2026;
+var TAX={
+  ssWageBase:184500, ssRate:0.124, medRate:0.029, seFactor:0.9235,
+  std:{single:16100,mfj:32200,mfs:16100,hoh:24150,qss:32200},
+  qbiThreshold:{single:201750,mfj:403500,mfs:201750,hoh:201750,qss:403500},
+  brackets:{
+    single:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[Infinity,.37]],
+    mfj:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[Infinity,.37]],
+    hoh:[[17700,.10],[67450,.12],[105700,.22],[201750,.24],[256200,.32],[640600,.35],[Infinity,.37]],
+    mfs:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[384350,.35],[Infinity,.37]]
+  }
+};
+var QUARTERS=[
+  {q:1,period:'Jan 1 – Mar 31',due:'2026-04-15'},
+  {q:2,period:'Apr 1 – May 31',due:'2026-06-15'},
+  {q:3,period:'Jun 1 – Aug 31',due:'2026-09-15'},
+  {q:4,period:'Sep 1 – Dec 31',due:'2027-01-15'}
+];
+var INCOME_SOURCES=['Etsy','Shopify','Freelance','UGC','DoorDash','Uber','eBay','Depop','Consulting','Services','Other'];
+var GIG=['DoorDash','Uber'];
+var EXPENSE_CATS=['Advertising','Bank Fees','Business Insurance','Car & Mileage','Computer & Electronics','Education','Equipment','Home Office','Meals','Office Supplies','Packaging','Postage & Shipping','Professional Services','Software & Subscriptions','Telephone & Internet','Travel','Other'];
+var OCCUPATIONS=['Etsy Seller','Freelancer','UGC Creator','Content Creator','Online Reseller','Gig Worker','Consultant','Service Provider','Other'];
+var FILING=[['single','Single'],['mfj','Married Filing Jointly'],['mfs','Married Filing Separately'],['hoh','Head of Household'],['qss','Qualifying Surviving Spouse']];
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DEMO_SET_ASIDE=2100, DEMO_OTHER_INCOME=19000;
+
+/* =====================================================================
+   SMALL HELPERS
+   ===================================================================== */
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function uid(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,9)}
+var fmt2=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+var fmt0=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0});
+function money(n){n=Number(n);if(!isFinite(n))n=0;if(Math.abs(n)<0.005)n=0;return fmt2.format(n)}
+function money0(n){n=Number(n);if(!isFinite(n))n=0;n=Math.round(n);if(n===0)n=0;return fmt0.format(n)}
+function num(n,d){return new Intl.NumberFormat('en-US',{minimumFractionDigits:d||0,maximumFractionDigits:d==null?1:d}).format(n)}
+function pct(n){return Math.round(n*100)+'%'}
+function parseMoney(v){if(v==null)return NaN;var s=String(v).replace(/[$,\s]/g,'');if(s==='')return NaN;var n=Number(s);return isFinite(n)?n:NaN}
+function pad(n){return String(n).padStart(2,'0')}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parseISO(iso){var p=String(iso).split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
+function fmtDate(iso){if(!iso)return '—';var d=parseISO(iso);if(isNaN(d))return '—';return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function validISO(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(iso))return false;var d=parseISO(iso);return !isNaN(d)&&iso===d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function sum(a,f){var t=0;for(var i=0;i<a.length;i++)t+=f(a[i]);return t}
+function isNarrow(){return window.matchMedia&&window.matchMedia('(max-width: 640px)').matches}
+
+var ICONS={
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1.6"/><rect x="14" y="3" width="7" height="5" rx="1.6"/><rect x="14" y="12" width="7" height="9" rx="1.6"/><rect x="3" y="16" width="7" height="5" rx="1.6"/>',
+  income:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
+  expenses:'<path d="M12 16V5M7 9l5-5 5 5M5 20h14"/>',
+  receipts:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  mileage:'<path d="M5 16l1.5-5a2 2 0 0 1 1.9-1.4h7.2a2 2 0 0 1 1.9 1.4L19 16"/><rect x="3" y="16" width="18" height="4" rx="1.6"/><path d="M7.5 18h.01M16.5 18h.01"/>',
+  tax:'<rect x="5" y="3" width="14" height="18" rx="2.4"/><path d="M8 7.5h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>',
+  reports:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+  settings:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  more:'<path d="M5 12h.01M12 12h.01M19 12h.01"/>',
+  download:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
+  upload:'<path d="M12 16V5M7 9l5-5 5 5M5 20h14"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  file:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2.4"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/>',
+  print:'<path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
+};
+function ic(n,s){s=s||20;return '<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(ICONS[n]||'')+'</svg>'}
+
+/* =====================================================================
+   DATA MODEL + PERSISTENCE (localStorage for data, IndexedDB for receipt files)
+   income[] expenses[] receipts[] mileage[] taxPayments[] settings{}
+   ===================================================================== */
+/* Each business keeps its own income, expenses, receipts, mileage, checklist and dropdown lists.
+   The tax profile (filing status, other income, withholding, credits), mileage rates, tax payments
+   and the amount set aside are shared, because tax is figured on you, not on each business.
+   S.income, S.expenses, S.receipts, S.mileage, S.checklist, S.incomeSources and S.expenseCats
+   always point at the ACTIVE business, so the rest of the app reads them as before. */
+var BIZ_FIELDS=['income','expenses','receipts','mileage','checklist','incomeSources','expenseCats'];
+var DEFAULT_BIZ_NAME='My business';
+var MAX_BIZ=12;
+function newBiz(name){
+  return {id:uid(),name:name||DEFAULT_BIZ_NAME,income:[],expenses:[],receipts:[],mileage:[],checklist:{},
+    incomeSources:INCOME_SOURCES.slice(),expenseCats:EXPENSE_CATS.slice()};
+}
+function activeBiz(s){
+  for(var i=0;i<s.businesses.length;i++)if(s.businesses[i].id===s.activeId)return s.businesses[i];
+  s.activeId=s.businesses[0].id;return s.businesses[0];
+}
+function attach(s){
+  BIZ_FIELDS.forEach(function(k){
+    Object.defineProperty(s,k,{configurable:true,enumerable:false,
+      get:function(){return activeBiz(s)[k]},set:function(v){activeBiz(s)[k]=v}});
+  });
+  return s;
+}
+function cleanList(l,def){
+  if(!Array.isArray(l))return def.slice();
+  var out=[];
+  l.forEach(function(x){if(typeof x==='string'){x=x.trim().slice(0,40);if(x&&out.indexOf(x)<0)out.push(x)}});
+  if(out.indexOf('Other')<0)out.push('Other');
+  return out;
+}
+function cleanBiz(b){
+  var nm=typeof b.name==='string'&&b.name.trim()?b.name.trim().slice(0,40):DEFAULT_BIZ_NAME;
+  var o=newBiz(nm);
+  if(typeof b.id==='string'&&b.id)o.id=b.id;
+  ['income','expenses','receipts','mileage'].forEach(function(k){o[k]=Array.isArray(b[k])?b[k]:[]});
+  o.checklist=b.checklist&&typeof b.checklist==='object'&&!Array.isArray(b.checklist)?b.checklist:{};
+  o.incomeSources=cleanList(b.incomeSources,INCOME_SOURCES);
+  o.expenseCats=cleanList(b.expenseCats,EXPENSE_CATS);
+  return o;
+}
+function defaultState(){
+  var b=newBiz();
+  return attach({v:2,
+    settings:{onboarded:false,name:'',taxYear:TAX_YEAR,filingStatus:'single',occupations:[],
+      mileageRateH1:0.725,mileageRateH2:0.76,reserveMode:'auto',reserveValue:25,setAside:0,
+      otherIncome:0,withholding:0,dependents:0,credits:0,otherPaid:0,qbi:false,basis:'ytd',
+      theme:'light',demo:false,demoPrev:null},
+    taxPayments:[],businesses:[b],activeId:b.id});
+}
+/* Accepts a saved state from any version: the original single-business format or the multi-business one. */
+function normalizeState(p){
+  var d=defaultState();
+  if(!p||typeof p!=='object')return d;
+  d.settings=Object.assign(d.settings,p.settings||{});
+  var oldChecklist=d.settings.checklist;delete d.settings.checklist;
+  d.taxPayments=Array.isArray(p.taxPayments)?p.taxPayments:[];
+  var list=[];
+  if(Array.isArray(p.businesses)){
+    p.businesses.forEach(function(b){if(b&&typeof b==='object')list.push(cleanBiz(b))});
+  }
+  if(!list.length){
+    list.push(cleanBiz({name:DEFAULT_BIZ_NAME,income:p.income,expenses:p.expenses,receipts:p.receipts,mileage:p.mileage,checklist:oldChecklist}));
+  }
+  d.businesses=list.slice(0,MAX_BIZ);
+  d.activeId=d.businesses.some(function(b){return b.id===p.activeId})?p.activeId:d.businesses[0].id;
+  return d;
+}
+function loadState(){
+  var p=null,keys=[STORAGE_KEY,OLD_STORAGE_KEY];
+  for(var i=0;i<keys.length&&!p;i++){
+    try{var raw=localStorage.getItem(keys[i]);if(raw){var t=JSON.parse(raw);if(t&&typeof t==='object')p=t}}catch(e){}
+  }
+  var d=normalizeState(p);
+  d.settings.taxYear=TAX_YEAR;
+  return d;
+}
+var S=loadState();
+var saveWarned=false;
+function save(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S))}
+  catch(e){if(!saveWarned){saveWarned=true;toast("This browser wouldn't save your data. Export a backup from Settings so nothing is lost.",'warn')}}
+}
+
+var IDB={
+  db:null,
+  open:function(){
+    var self=this;
+    if(self.db)return Promise.resolve(self.db);
+    return new Promise(function(res,rej){
+      try{
+        if(!window.indexedDB)return rej(new Error('no-idb'));
+        var r=indexedDB.open('taxbloom-files',1);
+        r.onupgradeneeded=function(){r.result.createObjectStore('files',{keyPath:'id'})};
+        r.onsuccess=function(){self.db=r.result;res(self.db)};
+        r.onerror=function(){rej(r.error)};
+      }catch(e){rej(e)}
+    });
+  },
+  tx:function(mode,fn){
+    return this.open().then(function(db){
+      return new Promise(function(res,rej){
+        var t=db.transaction('files',mode),rq=fn(t.objectStore('files'));
+        t.oncomplete=function(){res(rq&&rq.result)};
+        t.onerror=function(){rej(t.error)};
+        t.onabort=function(){rej(t.error)};
+      });
+    });
+  },
+  put:function(rec){return this.tx('readwrite',function(s){return s.put(rec)})},
+  get:function(id){return this.tx('readonly',function(s){return s.get(id)})},
+  del:function(id){return this.tx('readwrite',function(s){return s['delete'](id)})},
+  clear:function(){return this.tx('readwrite',function(s){return s.clear()})}
+};
+var urlCache={};
+function fileURL(fileId){
+  if(urlCache[fileId])return Promise.resolve(urlCache[fileId]);
+  return IDB.get(fileId).then(function(rec){
+    if(!rec||!rec.blob)return null;
+    urlCache[fileId]=URL.createObjectURL(rec.blob);
+    return urlCache[fileId];
+  }).catch(function(){return null});
+}
+function dropFile(fileId){
+  if(!fileId)return;
+  if(urlCache[fileId]){try{URL.revokeObjectURL(urlCache[fileId])}catch(e){}delete urlCache[fileId]}
+  IDB.del(fileId).catch(function(){});
+}
+
+/* =====================================================================
+   CALCULATIONS — one place, used everywhere
+   ===================================================================== */
+function inYear(s,iso){return typeof iso==='string'&&iso.slice(0,4)===String(s.settings.taxYear)}
+function yIncome(s){s=s||S;return s.income.filter(function(i){return inYear(s,i.date)})}
+function yExpenses(s){s=s||S;return s.expenses.filter(function(e){return inYear(s,e.date)})}
+function yMileage(s){s=s||S;return s.mileage.filter(function(m){return inYear(s,m.date)})}
+function bizAmount(e){var p=e.bizPct==null?100:Number(e.bizPct);return Number(e.amount)*p/100}
+function calculateTotalIncome(s){return sum(yIncome(s),function(i){return Number(i.amount)})}
+function calculateTotalExpenses(s){return sum(yExpenses(s),bizAmount)}
+function mileageRateFor(s,iso){
+  var m=Number(String(iso).slice(5,7));
+  var r=m<=6?s.settings.mileageRateH1:s.settings.mileageRateH2;
+  if(r===''||r==null||isNaN(Number(r)))return null;
+  return Number(r);
+}
+function calculateMileageDeduction(s){
+  var trips=yMileage(s),miles=0,amount=0,missing=false;
+  trips.forEach(function(t){
+    miles+=Number(t.miles);
+    var r=mileageRateFor(s,t.date);
+    if(r==null)missing=true;else amount+=Number(t.miles)*r;
+  });
+  return {miles:miles,amount:amount,missing:missing,count:trips.length};
+}
+function calculateBusinessProfit(s){
+  return calculateTotalIncome(s)-calculateTotalExpenses(s)-calculateMileageDeduction(s).amount;
+}
+function calculateMonthlyTotals(s){
+  var out=[],i;
+  for(i=0;i<12;i++)out.push({m:i,income:0,expenses:0,profit:0});
+  yIncome(s).forEach(function(r){out[Number(r.date.slice(5,7))-1].income+=Number(r.amount)});
+  yExpenses(s).forEach(function(r){out[Number(r.date.slice(5,7))-1].expenses+=bizAmount(r)});
+  yMileage(s).forEach(function(t){var r=mileageRateFor(s,t.date);if(r!=null)out[Number(t.date.slice(5,7))-1].expenses+=Number(t.miles)*r});
+  out.forEach(function(m){m.profit=m.income-m.expenses});
+  return out;
+}
+function projectionFactor(s){
+  if(s.settings.basis!=='annualized')return 1;
+  var now=new Date();
+  if(now.getFullYear()!==s.settings.taxYear)return 1;
+  var day=Math.floor((now-new Date(s.settings.taxYear,0,1))/864e5)+1;
+  if(day>=365)return 1;
+  return 365/Math.max(day,31);
+}
+function bracketTax(taxable,brackets){
+  var prev=0,tax=0,rows=[],marginal=brackets[0][1];
+  for(var i=0;i<brackets.length;i++){
+    var cap=brackets[i][0],rate=brackets[i][1];
+    if(taxable>prev){
+      var slice=Math.min(taxable,cap)-prev;
+      tax+=slice*rate;rows.push({from:prev,to:cap,rate:rate,amount:slice*rate,slice:slice});marginal=rate;
+    }
+    prev=cap;
+    if(taxable<=cap)break;
+  }
+  return {tax:tax,rows:rows,marginal:marginal};
+}
+/* Tax is figured on you, so the estimate adds up every business. Per-business totals stay on the dashboard and reports. */
+function taxScope(s){
+  if(!s||!Array.isArray(s.businesses))return s;
+  var all={settings:s.settings,taxPayments:s.taxPayments,receipts:[],income:[],expenses:[],mileage:[]};
+  s.businesses.forEach(function(b){all.income=all.income.concat(b.income);all.expenses=all.expenses.concat(b.expenses);all.mileage=all.mileage.concat(b.mileage)});
+  return all;
+}
+function bizProfits(s){
+  return s.businesses.map(function(b){
+    var one={settings:s.settings,income:b.income,expenses:b.expenses,mileage:b.mileage,taxPayments:[],receipts:[]};
+    return {id:b.id,name:b.name,profit:calculateBusinessProfit(one)};
+  });
+}
+function calculateTaxEstimate(s){
+  s=taxScope(s);
+  var st=s.settings,fs=st.filingStatus;
+  if(!TAX.std[fs])fs='single';
+  var income=calculateTotalIncome(s),expenses=calculateTotalExpenses(s),mil=calculateMileageDeduction(s);
+  var rawProfit=income-expenses-mil.amount;
+  var k=projectionFactor(s);
+  var profit=Math.max(0,rawProfit)*k;
+  var seBase=profit*TAX.seFactor,ss=0,med=0;
+  if(seBase>=400){ss=Math.min(seBase,TAX.ssWageBase)*TAX.ssRate;med=seBase*TAX.medRate}
+  var seTax=ss+med,halfSE=seTax/2;
+  var other=Math.max(0,Number(st.otherIncome)||0);
+  var agi=profit-halfSE+other;
+  var std=TAX.std[fs];
+  var taxableBefore=Math.max(0,agi-std);
+  var qbi=0;
+  if(st.qbi&&profit>0&&taxableBefore<=TAX.qbiThreshold[fs]){qbi=Math.min(0.2*Math.max(0,profit-halfSE),0.2*taxableBefore)}
+  var taxable=Math.max(0,taxableBefore-qbi);
+  var br=bracketTax(taxable,TAX.brackets[fs==='qss'?'mfj':fs]);
+  var credits=Math.max(0,Number(st.credits)||0);
+  var incomeTax=Math.max(0,br.tax-credits);
+  var totalTax=seTax+incomeTax;
+  var withholding=Math.max(0,Number(st.withholding)||0);
+  var otherPaid=Math.max(0,Number(st.otherPaid)||0);
+  var paidQ=sum(s.taxPayments,function(p){return Number(p.amount)||0});
+  var base=Math.max(0,totalTax-withholding-otherPaid);
+  var stillOwed=Math.max(0,base-paidQ);
+  return {fs:fs,income:income,expenses:expenses,mileage:mil.amount,rawProfit:rawProfit,factor:k,profit:profit,
+    seBase:seBase,ss:ss,med:med,seTax:seTax,halfSE:halfSE,other:other,agi:agi,std:std,qbi:qbi,taxableBefore:taxableBefore,
+    taxable:taxable,bracketRows:br.rows,bracketTax:br.tax,marginal:br.marginal,credits:credits,incomeTax:incomeTax,
+    totalTax:totalTax,withholding:withholding,otherPaid:otherPaid,paidQ:paidQ,base:base,stillOwed:stillOwed,
+    effective:(profit+other)>0?totalTax/(profit+other):0};
+}
+function calculateTaxReserve(s,est){
+  est=est||calculateTaxEstimate(s);
+  var st=s.settings,target;
+  if(st.reserveMode==='percent')target=Math.max(0,est.rawProfit)*Math.max(0,Number(st.reserveValue)||0)/100;
+  else if(st.reserveMode==='amount')target=Math.max(0,Number(st.reserveValue)||0);
+  else target=est.stillOwed;
+  var saved=Math.max(0,Number(st.setAside)||0);
+  var remaining=Math.max(0,target-saved);
+  var ratio=target>0?Math.min(1,saved/target):1;
+  var status=target<=0?'good':ratio>=0.7?'good':ratio>=0.4?'watch':'behind';
+  var now=new Date(),monthsLeft=now.getFullYear()===st.taxYear?12-now.getMonth():1;
+  return {target:target,saved:saved,remaining:remaining,ratio:ratio,status:status,
+    monthsLeft:monthsLeft,monthly:remaining/Math.max(1,monthsLeft),quarterly:est.base/4};
+}
+function groupBy(arr,keyFn,valFn){var o={};arr.forEach(function(x){var k=keyFn(x);o[k]=(o[k]||0)+valFn(x)});return o}
+function expenseByCategory(s){return groupBy(yExpenses(s),function(e){return e.category},bizAmount)}
+function incomeBySource(s){return groupBy(yIncome(s),function(i){return i.source},function(i){return Number(i.amount)})}
+
+/* =====================================================================
+   DEMO DATA
+   ===================================================================== */
+function demoRecords(){
+  var I=function(d,t,a,s){return {date:d,description:t,amount:a,source:s,notes:''}};
+  var E=function(d,t,a,c,p,n){return {date:d,description:t,amount:a,category:c,bizPct:p==null?100:p,notes:n||''}};
+  return {
+    income:[
+      I('2026-02-08','Etsy payout – January orders',520,'Etsy'),I('2026-04-05','Etsy payout – March orders',780,'Etsy'),
+      I('2026-06-10','Etsy payout – May orders',1150,'Etsy'),I('2026-08-07','Etsy payout – July orders',960,'Etsy'),
+      I('2026-09-09','Etsy payout – August orders',840,'Etsy'),
+      I('2026-01-20','UGC videos – skincare brand',900,'UGC'),I('2026-03-14','UGC bundle – kitchen brand',1200,'UGC'),
+      I('2026-05-02','UGC – app promo videos',1500,'UGC'),I('2026-07-18','UGC – fitness brand',1400,'UGC'),
+      I('2026-09-12','UGC – haircare campaign',1800,'UGC'),
+      I('2026-02-22','Logo design – local bakery',650,'Freelance'),I('2026-04-18','Website copywriting',900,'Freelance'),
+      I('2026-06-25','Brand kit – boutique',1200,'Freelance'),I('2026-08-20','Social media templates',1000,'Freelance'),
+      I('2026-03-03','Virtual assistant retainer – March',800,'Services'),I('2026-05-28','Organizing session package',1020,'Services'),
+      I('2026-07-09','Virtual assistant retainer – July',900,'Services'),I('2026-09-22','Virtual assistant retainer – September',900,'Services')
+    ],
+    expenses:[
+      E('2026-01-05','Canva Pro annual plan',120,'Software & Subscriptions'),E('2026-02-10','Video editing subscription',200,'Software & Subscriptions'),
+      E('2026-05-14','Etsy sales tools',160,'Software & Subscriptions'),
+      E('2026-03-12','Props & backdrops',210,'Office Supplies'),E('2026-06-02','Printer ink & paper',140,'Office Supplies'),
+      E('2026-08-14','Product photography supplies',270,'Office Supplies'),
+      E('2026-02-15','Etsy Ads',300,'Advertising'),E('2026-05-20','Meta ads – shop promo',250,'Advertising'),E('2026-08-25','Pinterest ads',300,'Advertising'),
+      E('2026-04-10','Postage – spring orders',150,'Postage & Shipping'),E('2026-06-18','Postage – May & June orders',190,'Postage & Shipping'),E('2026-09-02','Postage – summer orders',200,'Postage & Shipping'),
+      E('2026-02-02','Ring light & tripod',350,'Equipment'),E('2026-05-10','Camera lens',900,'Equipment'),
+      E('2026-01-15','Internet – Jan to Jun',300,'Telephone & Internet',80,'Shared with home use'),E('2026-07-15','Internet – Jul to Dec',300,'Telephone & Internet',80,'Shared with home use'),
+      E('2026-03-20','Online course – video editing',350,'Education'),E('2026-07-01','Business workshop',250,'Education'),
+      E('2026-01-25','Co-working day passes',400,'Other'),E('2026-04-25','Craft fair booth fee',500,'Other'),E('2026-06-05','Business cards & signage',560,'Other')
+    ],
+    mileage:[
+      {date:'2026-01-18',from:'Home',to:'Print shop',purpose:'Pick up Etsy packaging supplies',miles:14.2},
+      {date:'2026-02-26',from:'Home',to:'Client studio',purpose:'Client photo shoot',miles:62},
+      {date:'2026-03-19',from:'Home',to:'Post office',purpose:'Ship Etsy orders',miles:9.8},
+      {date:'2026-04-30',from:'Home',to:'Craft supply warehouse',purpose:'Restock supplies',miles:48.6},
+      {date:'2026-05-22',from:'Home',to:'Convention center',purpose:'Craft fair setup',miles:186.4},
+      {date:'2026-06-27',from:'Home',to:'Brand partner office',purpose:'UGC product pickup and meeting',miles:74.5},
+      {date:'2026-08-13',from:'Home',to:'Wholesale market',purpose:'Inventory sourcing',miles:312},
+      {date:'2026-09-20',from:'Home',to:'Co-working space',purpose:'Client work sessions (round trips)',miles:533}
+    ],
+    receipts:[
+      {merchant:'Canva',date:'2026-01-05',amount:120,category:'Software & Subscriptions',bizPct:100,notes:''},
+      {merchant:'Staples',date:'2026-06-02',amount:140,category:'Office Supplies',bizPct:100,notes:''},
+      {merchant:'B&H Photo',date:'2026-05-10',amount:900,category:'Equipment',bizPct:100,notes:'Camera lens'},
+      {merchant:'USPS',date:'2026-09-02',amount:200,category:'Postage & Shipping',bizPct:100,notes:''}
+    ]
+  };
+}
+function addDemo(){
+  var d=demoRecords(),n=0;
+  ['income','expenses','mileage','receipts'].forEach(function(k){
+    d[k].forEach(function(r){S[k].push(Object.assign({id:uid(),demo:true,created:0},r))});
+  });
+  if(!S.settings.demo){
+    S.settings.demoPrev={setAside:S.settings.setAside,otherIncome:S.settings.otherIncome};
+    S.settings.setAside=DEMO_SET_ASIDE;S.settings.otherIncome=DEMO_OTHER_INCOME;
+  }
+  S.settings.demo=true;
+  if(!S.settings.occupations.length)S.settings.occupations=['Etsy Seller','UGC Creator','Freelancer','Service Provider'];
+}
+function removeDemo(){
+  S.businesses.forEach(function(b){['income','expenses','mileage','receipts'].forEach(function(k){b[k]=b[k].filter(function(r){return !r.demo})})});
+  var prev=S.settings.demoPrev;
+  if(prev){
+    if(S.settings.setAside===DEMO_SET_ASIDE)S.settings.setAside=prev.setAside;
+    if(S.settings.otherIncome===DEMO_OTHER_INCOME)S.settings.otherIncome=prev.otherIncome;
+  }
+  S.settings.demoPrev=null;S.settings.demo=false;
+}
+
+/* =====================================================================
+   UI STATE + ROUTER
+   ===================================================================== */
+var ui={route:'dashboard',gate:'landing',obStep:1,ob:{occupations:[],filing:'single',setAside:''},
+  incomeFilter:'All',incomeQ:'',expQ:'',expCat:'All',recQ:'',taxTab:'estimate'};
+var ROUTES=[['dashboard','Dashboard'],['income','Income'],['expenses','Expenses'],['receipts','Receipts'],['mileage','Mileage'],['tax','Tax Estimate'],['reports','Reports'],['settings','Settings']];
+function go(route,opts){
+  if(!ROUTES.some(function(r){return r[0]===route}))route='dashboard';
+  ui.route=route;
+  if(opts&&opts.tab)ui.taxTab=opts.tab;
+  try{if(location.hash!=='#/'+route)history.replaceState(null,'','#/'+route)}catch(e){}
+  closeModal();
+  render();
+  window.scrollTo(0,0);
+  var h=$('#view .page-title');if(h&&!(opts&&opts.noFocus))h.focus({preventScroll:true});
+  if(opts&&opts.scrollTo){var t=document.getElementById(opts.scrollTo);if(t)t.scrollIntoView({block:'start'})}
+}
+function readHash(){try{var m=/^#\/(\w+)/.exec(location.hash);if(m&&ROUTES.some(function(r){return r[0]===m[1]}))ui.route=m[1]}catch(e){}}
+
+/* =====================================================================
+   TOAST + MODAL
+   ===================================================================== */
+function toast(msg,type){
+  var host=$('#toasts');if(!host)return;
+  var t=document.createElement('div');t.className='toast'+(type?' '+type:'');t.textContent=msg;
+  host.appendChild(t);
+  setTimeout(function(){t.style.transition='opacity .25s';t.style.opacity='0';setTimeout(function(){t.remove()},260)},type==='warn'||type==='bad'?5200:3000);
+}
+var modalState=null;
+function focusables(root){return $$('a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',root).filter(function(el){return el.offsetParent!==null||el===document.activeElement})}
+function openModal(o){
+  closeModal(true);
+  var id='m'+Math.random().toString(36).slice(2,7);
+  var root=$('#modalRoot');
+  root.innerHTML='<div class="scrim" data-scrim="1"><div class="modal '+(o.size||'')+'" role="dialog" aria-modal="true" aria-labelledby="'+id+'-t" tabindex="-1">'+
+    '<div class="modal-head"><h2 id="'+id+'-t">'+esc(o.title)+'</h2><button class="icon-btn" data-act="closeModal" aria-label="Close dialog">'+ic('x')+'</button></div>'+
+    '<div class="modal-body">'+o.html+'</div></div></div>';
+  var scrim=root.firstChild,modal=scrim.firstChild;
+  modalState={prev:document.activeElement,onClose:o.onClose};
+  document.body.style.overflow='hidden';
+  scrim.addEventListener('mousedown',function(e){if(e.target===scrim)closeModal()});
+  modal.addEventListener('keydown',function(e){
+    if(e.key==='Tab'){
+      var f=focusables(modal);if(!f.length)return;
+      var first=f[0],last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+    }
+  });
+  if(o.onMount)o.onMount(modal);
+  var target=o.focus?$(o.focus,modal):null;
+  if(!target){var f=focusables(modal).filter(function(el){return !el.classList.contains('icon-btn')});target=f[0]||modal}
+  target.focus();
+  return modal;
+}
+function closeModal(silent){
+  var root=$('#modalRoot');
+  if(!root||!root.firstChild)return;
+  var st=modalState;root.innerHTML='';modalState=null;
+  document.body.style.overflow='';
+  if(st){
+    if(st.onClose)st.onClose();
+    if(!silent&&st.prev&&document.contains(st.prev)){try{st.prev.focus()}catch(e){}}
+  }
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modalState)closeModal()});
+
+function confirmModal(o){
+  var need=o.requireText;
+  var html='<p class="muted">'+esc(o.message)+'</p>'+
+    (need?'<div class="field"><label for="cfText">Type '+esc(need)+' to confirm</label><input type="text" id="cfText" autocomplete="off"></div>':'')+
+    '<div class="modal-foot"><button class="btn btn-ghost" data-act="closeModal">Cancel</button>'+
+    '<button class="btn '+(o.danger===false?'btn-primary':'btn-danger')+'" id="cfOk"'+(need?' disabled':'')+'>'+esc(o.confirmLabel||'Delete')+'</button></div>';
+  openModal({title:o.title,size:'sm',html:html,focus:need?'#cfText':'.btn-ghost',onMount:function(m){
+    var ok=$('#cfOk',m);
+    if(need){$('#cfText',m).addEventListener('input',function(e){ok.disabled=e.target.value.trim()!==need})}
+    ok.addEventListener('click',function(){closeModal(true);o.onConfirm()});
+  }});
+}
+
+/* ---------- generic form modal with validation ---------- */
+function fieldHTML(f,prefix){
+  var id=prefix+'-'+f.name,v=f.value==null?'':f.value,desc=(f.hint?id+'-h ':'')+id+'-e',ctl='';
+  var common=' id="'+id+'" name="'+f.name+'" aria-describedby="'+desc+'"'+(f.required?' aria-required="true"':'');
+  if(f.type==='select'){
+    ctl='<select'+common+'>'+f.options.map(function(o){var val=Array.isArray(o)?o[0]:o,lab=Array.isArray(o)?o[1]:o;return '<option value="'+esc(val)+'"'+(String(val)===String(v)?' selected':'')+'>'+esc(lab)+'</option>'}).join('')+'</select>';
+  }else if(f.type==='textarea'){
+    ctl='<textarea'+common+' rows="3" maxlength="500" placeholder="'+esc(f.placeholder||'')+'">'+esc(v)+'</textarea>';
+  }else if(f.type==='money'){
+    ctl='<div class="money-wrap"><span aria-hidden="true">$</span><input type="text" inputmode="decimal" autocomplete="off"'+common+' value="'+esc(v)+'" placeholder="0.00"></div>';
+  }else if(f.type==='percent'){
+    ctl='<div class="suffix-wrap"><input type="text" inputmode="decimal" autocomplete="off"'+common+' value="'+esc(v)+'"><span aria-hidden="true">% business</span></div>';
+  }else if(f.type==='miles'){
+    ctl='<div class="suffix-wrap"><input type="text" inputmode="decimal" autocomplete="off"'+common+' value="'+esc(v)+'" placeholder="0.0"><span aria-hidden="true">miles</span></div>';
+  }else if(f.type==='file'){
+    ctl='<input type="file"'+common+' accept="image/*,application/pdf">';
+  }else if(f.type==='checkbox'){
+    return '<div class="field span-2"><label class="check" for="'+id+'"><input type="checkbox" id="'+id+'" name="'+f.name+'"'+(v?' checked':'')+'><span>'+esc(f.label)+(f.hint?'<span class="hint" style="display:block;font-weight:400">'+esc(f.hint)+'</span>':'')+'</span></label></div>';
+  }else if(f.type==='date'){
+    var y=S.settings.taxYear;
+    ctl='<input type="date"'+common+' value="'+esc(v)+'"'+(f.anyYear?'':' min="'+y+'-01-01" max="'+y+'-12-31"')+'>';
+  }else{
+    ctl='<input type="text"'+common+' value="'+esc(v)+'" maxlength="'+(f.maxlength||120)+'" autocomplete="off" placeholder="'+esc(f.placeholder||'')+'">';
+  }
+  return '<div class="field'+(f.span?' span-2':'')+'"><label for="'+id+'">'+esc(f.label)+(f.required?'':' <span class="opt">(optional)</span>')+'</label>'+ctl+(f.hint?'<div class="hint" id="'+id+'-h">'+esc(f.hint)+'</div>':'')+'<div class="err" id="'+id+'-e" role="alert"></div></div>';
+}
+function formModal(o){
+  var prefix='f'+Math.random().toString(36).slice(2,6);
+  var html='<form novalidate id="'+prefix+'" class="form-grid">'+o.fields.map(function(f){return fieldHTML(f,prefix)}).join('')+
+    (o.extra?'<div class="span-2">'+o.extra+'</div>':'')+
+    '<div class="span-2 modal-foot"><button type="button" class="btn btn-ghost" data-act="closeModal">Cancel</button><button type="submit" class="btn btn-primary">'+esc(o.submit||'Save')+'</button></div></form>';
+  openModal({title:o.title,html:html,size:o.size,onMount:function(modal){
+    var form=$('#'+prefix,modal);
+    if(o.onMount)o.onMount(modal,form,prefix);
+    form.addEventListener('submit',function(ev){
+      ev.preventDefault();
+      var vals={},ok=true,firstBad=null;
+      o.fields.forEach(function(f){
+        var el=form.elements[f.name];if(!el)return;
+        var errEl=$('#'+prefix+'-'+f.name+'-e',form),msg='',val;
+        if(f.type==='checkbox'){vals[f.name]=el.checked;return}
+        if(f.type==='file'){vals[f.name]=el.files&&el.files[0]||null;
+          if(vals[f.name]&&vals[f.name].size>25*1024*1024)msg='That file is over 25 MB. Choose a smaller image or PDF.';
+        }else{
+          val=el.value.trim();vals[f.name]=val;
+          if(f.required&&val==='')msg='This field is required.';
+          else if(val!==''){
+            if(f.type==='money'){var n=parseMoney(val);if(isNaN(n)||n<=0)msg='Enter an amount greater than $0.';else if(n>100000000)msg='That amount looks too large.';else vals[f.name]=Math.round(n*100)/100}
+            else if(f.type==='percent'){var p=parseMoney(val.replace('%',''));if(isNaN(p)||p<0||p>100)msg='Enter a percentage from 0 to 100.';else vals[f.name]=p}
+            else if(f.type==='miles'){var mi=parseMoney(val);if(isNaN(mi)||mi<=0)msg='Enter miles greater than 0.';else if(mi>100000)msg='That mileage looks too large.';else vals[f.name]=Math.round(mi*10)/10}
+            else if(f.type==='date'){if(!validISO(val))msg='Enter a valid date.';else if(!f.anyYear&&val.slice(0,4)!==String(S.settings.taxYear))msg='Choose a date in '+S.settings.taxYear+'.'}
+          }
+        }
+        if(!msg&&f.validate)msg=f.validate(vals[f.name],vals)||'';
+        el.setAttribute('aria-invalid',msg?'true':'false');
+        errEl.textContent=msg;
+        if(msg){ok=false;if(!firstBad)firstBad=el}
+      });
+      if(!ok){firstBad.focus();return}
+      var btn=$('button[type=submit]',form);btn.disabled=true;
+      Promise.resolve(o.onSubmit(vals)).then(function(r){if(r===false)btn.disabled=false;else closeModal(true)}).catch(function(){btn.disabled=false;toast('Something went wrong saving that. Please try again.','bad')});
+    });
+  }});
+}
+
+/* =====================================================================
+   FILE SAVE (downloads capability when published; anchor fallback otherwise)
+   ===================================================================== */
+var dlPromise=null;
+function getDownloads(){
+  if(dlPromise)return dlPromise;
+  dlPromise=Promise.resolve().then(function(){return (window.claude&&window.claude.use)?window.claude.use('downloads'):null}).catch(function(){return null});
+  return dlPromise;
+}
+function saveFile(filename,data,mime){
+  return getDownloads().then(function(d){
+    if(d){
+      return d.save({filename:filename,data:data}).then(function(){return 'saved'}).catch(function(e){return e&&e.code==='declined'?'declined':'failed'});
+    }
+    try{
+      var blob=data instanceof Blob?data:new Blob([data],{type:mime||'application/octet-stream'});
+      var url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url)},3000);return 'saved';
+    }catch(e){return 'failed'}
+  });
+}
+
+/* =====================================================================
+   SHARED VIEW PIECES
+   ===================================================================== */
+function bizPill(){return S.businesses.length>1?'<button class="biz-pill" data-act="bizMenu" aria-label="Business: '+esc(activeBiz(S).name)+'. Switch business">Business: '+esc(activeBiz(S).name)+' <span aria-hidden="true">▾</span></button>':''}
+function allPill(){return S.businesses.length>1?'<span class="biz-pill static">All '+S.businesses.length+' businesses combined</span>':''}
+function pageHeadAll(t,sub,actions){return pageHead(t,sub,actions,allPill())}
+function pageHead(t,sub,actions,pill){return '<header class="page-head"><div>'+(pill===undefined?bizPill():pill)+'<h1 class="page-title" tabindex="-1">'+t+'</h1><p class="page-sub">'+sub+'</p></div><div class="head-actions">'+(actions||'')+'</div></header>'}
+function emptyState(emoji,title,text,btn){return '<div class="empty"><div class="empty-emoji" aria-hidden="true">'+emoji+'</div><h3>'+title+'</h3><p>'+text+'</p>'+(btn||'')+'</div>'}
+function metric(icon,label,val,sub,cls){return '<div class="card metric"><div class="lbl"><span class="dot">'+ic(icon,17)+'</span>'+label+'</div><div class="val'+(cls?' '+cls:'')+'">'+val+'</div><div class="sub">'+(sub||'&nbsp;')+'</div></div>'}
+function btn(label,act,cls,icon,data){return '<button class="btn '+(cls||'btn-primary')+'" data-act="'+act+'"'+(data||'')+'>'+(icon?ic(icon,18):'')+label+'</button>'}
+function bloomSVG(ratio,size,animate,label){
+  var n=12,p='',i,f;
+  for(i=0;i<n;i++){
+    f=Math.max(0,Math.min(1,ratio*n-i));
+    p+='<g transform="rotate('+(i*30)+' 60 60)"><ellipse class="petal-track" cx="60" cy="30" rx="8.8" ry="21"/>'+
+       (f>0?'<ellipse class="petal-fill" cx="60" cy="30" rx="8.8" ry="21" style="--f:'+f.toFixed(2)+';opacity:'+f.toFixed(2)+';--d:'+(i*60)+'ms"/>':'')+'</g>';
+  }
+  return '<svg class="bloom'+(animate?' anim':'')+'" width="'+size+'" height="'+size+'" viewBox="0 0 120 120" role="img" aria-label="'+esc(label||('Tax reserve '+pct(ratio)+' funded'))+'">'+p+
+    '<circle class="core" cx="60" cy="60" r="19"/><text x="60" y="65.5" text-anchor="middle" font-size="15">'+pct(ratio)+'</text></svg>';
+}
+function disclaimerStrip(){return '<div class="notice"><strong>Estimated only · Not tax advice.</strong> Your actual tax may differ based on filing status, deductions, credits, other income, dependents, state taxes, and other circumstances.</div>'}
+function greeting(){var h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening'}
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+var views={};
+
+/* ---------- Dashboard ---------- */
+function compactMoney(v){var a=Math.abs(v),s=a>=1000?'$'+(a/1000).toFixed(a%1000===0?0:1).replace(/\.0$/,'')+'k':'$'+Math.round(a);return v<0?'-'+s:s}
+function niceStep(range,n){var raw=range/n,pow=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/pow;return (f<=1?1:f<=2?2:f<=5?5:10)*pow}
+function chartHTML(){
+  var t=calculateMonthlyTotals(S),narrow=isNarrow();
+  var W=narrow?420:760,H=narrow?250:300,L=narrow?44:56,R=10,T=14,B=30,iw=W-L-R,ih=H-T-B;
+  var max=0,min=0;
+  t.forEach(function(m){max=Math.max(max,m.income,m.expenses,m.profit);min=Math.min(min,m.profit)});
+  if(max<=0&&min>=0)max=100;
+  var step=niceStep(max-min,4);max=Math.ceil(max/step)*step;min=min<0?Math.floor(min/step)*step:0;
+  var y=function(v){return T+ih*(1-(v-min)/(max-min))};
+  var band=iw/12,bw=Math.min(18,band*.3),svg='',v,pts=[],dots='';
+  for(v=min;v<=max+1e-6;v+=step){svg+='<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v).toFixed(1)+'" y2="'+y(v).toFixed(1)+'"/><text class="axis" x="'+(L-8)+'" y="'+(y(v)+4).toFixed(1)+'" text-anchor="end">'+compactMoney(v)+'</text>'}
+  var y0=y(0);
+  t.forEach(function(m,i){
+    var cx=L+band*(i+.5);
+    var hi=Math.max(0,y0-y(m.income)),he=Math.max(0,y0-y(m.expenses));
+    svg+='<rect class="c-inc" x="'+(cx-bw-1).toFixed(1)+'" y="'+(y0-hi).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hi.toFixed(1)+'" rx="3"/>';
+    svg+='<rect class="c-exp" x="'+(cx+1).toFixed(1)+'" y="'+(y0-he).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+he.toFixed(1)+'" rx="3"/>';
+    pts.push(cx.toFixed(1)+','+y(m.profit).toFixed(1));
+    dots+='<circle class="c-dot" cx="'+cx.toFixed(1)+'" cy="'+y(m.profit).toFixed(1)+'" r="3.5"/>';
+    svg+='<text class="axis" x="'+cx.toFixed(1)+'" y="'+(H-9)+'" text-anchor="middle">'+(narrow?MONTHS[i][0]:MONTHS[i])+'</text>';
+    svg+='<rect x="'+(cx-band/2).toFixed(1)+'" y="'+T+'" width="'+band.toFixed(1)+'" height="'+ih+'" fill="transparent"><title>'+MONTHS[i]+': income '+money0(m.income)+', expenses '+money0(m.expenses)+', profit '+money0(m.profit)+'</title></rect>';
+  });
+  svg+='<polyline class="c-line" points="'+pts.join(' ')+'"/>'+dots;
+  var rows=t.map(function(m,i){return '<tr><td>'+MONTHS[i]+'</td><td class="r num">'+money(m.income)+'</td><td class="r num">'+money(m.expenses)+'</td><td class="r num">'+money(m.profit)+'</td></tr>'}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Monthly income, expenses and profit for '+S.settings.taxYear+'. A data table follows.">'+svg+'</svg>'+
+    '<details><summary>View chart data as a table</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Month</th><th class="r">Income</th><th class="r">Expenses</th><th class="r">Profit</th></tr></thead><tbody>'+rows+'</tbody></table></div></details>';
+}
+function recentTransactions(){
+  var items=[];
+  yIncome(S).forEach(function(i){items.push({date:i.date,created:i.created||0,desc:i.description,type:'Income',cat:i.source,amount:Number(i.amount)})});
+  yExpenses(S).forEach(function(e){items.push({date:e.date,created:e.created||0,desc:e.description,type:'Expense',cat:e.category,amount:-Number(e.amount)})});
+  items.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:b.created-a.created});
+  return items.slice(0,5);
+}
+var STATUS_COPY={
+  good:['🟢','On Track','Based on your current numbers, your estimated tax reserve is on track.','good'],
+  watch:['🟡','Almost There','You’ve set aside part of your estimated reserve. A few more deposits will close the gap.','warn'],
+  behind:['🔴','Needs Attention','Your reserve is well below your current estimate. Setting more aside soon can make tax time easier.','bad']
+};
+views.dashboard=function(){
+  var est=calculateTaxEstimate(S),res=calculateTaxReserve(S,est),y=S.settings.taxYear;
+  var mil0=calculateMileageDeduction(S),income=calculateTotalIncome(S),exp=calculateTotalExpenses(S)+mil0.amount,profit=calculateBusinessProfit(S);
+  var name=S.settings.name?', '+esc(S.settings.name.split(' ')[0]):'';
+  var st=STATUS_COPY[res.status];
+  var recent=recentTransactions();
+  var hasData=S.income.length+S.expenses.length>0;
+  var resText=res.target<=0?'Add income and expenses to see how much to set aside.':
+    res.ratio>=1?'You’ve fully set aside your estimated tax reserve.':'You’re '+pct(res.ratio)+' of the way toward your estimated tax reserve.';
+  var chk=checklistProgress();
+  return '<div class="page">'+
+   '<header class="page-head"><div>'+bizPill()+'<p class="page-sub" style="margin:0 0 6px;font-size:18px">'+greeting()+name+' 👋</p><h1 class="page-title" tabindex="-1">Your '+y+' tax snapshot</h1><p class="page-sub">Track your money. Organize your expenses. Know what to set aside.</p></div>'+
+   '<div class="head-actions"><button class="switch" role="switch" aria-checked="'+(S.settings.demo?'true':'false')+'" data-act="toggleDemo"><span class="track"></span>Try Demo Data</button></div></header>'+
+   (S.settings.demo?'<div class="banner" role="status"><span>🧪 Demo data is on. These numbers are examples, not yours.</span><button class="btn btn-ghost btn-sm" data-act="clearDemo">Clear demo data</button></div>':'')+
+   '<section class="grid-4" aria-label="Key numbers">'+
+    metric('income','Total Income',money(income),yIncome(S).length+' entries this year')+
+    metric('expenses','Business Expenses',money(exp),mil0.amount>0?'includes '+money(mil0.amount)+' mileage':'potential business expenses')+
+    metric('dashboard','Estimated Profit',money(profit),'income minus expenses',profit<0?'neg':'')+
+    metric('shield','Tax Set Aside',money(S.settings.setAside),res.target>0?'toward '+money0(res.target)+' reserve':'you can update this anytime')+
+   '</section>'+
+   (!hasData?'<div class="card">'+emptyState('🌱','Your snapshot is waiting','Add your first income or expense and TaxBloom will build your tax snapshot automatically. Or flip on demo data to look around.',btn('Add Income','addIncome','btn-primary','plus')+' '+'<button class="btn btn-ghost" data-act="toggleDemo">Try Demo Data</button>')+'</div>':'')+
+   '<section class="grid-reserve"><div class="card" aria-labelledby="resH">'+
+     '<div class="card-head"><div><h2 class="card-title" id="resH">Tax Reserve</h2><p class="card-sub">'+(S.businesses.length>1?'Based on all '+S.businesses.length+' of your businesses combined.':'What you may want to set aside, based on your entries.')+'</p></div><button class="btn btn-soft btn-sm" data-act="setAside">Update amount set aside</button></div>'+
+     '<div class="reserve-layout"><div>'+bloomSVG(res.ratio,148,false)+'</div><div>'+
+       '<div class="kv"><div><span class="k">Estimated tax liability</span><span class="v">'+money0(res.target)+'</span></div>'+
+       '<div><span class="k">Amount set aside</span><span class="v">'+money0(res.saved)+'</span></div>'+
+       '<div class="total"><span class="k">Remaining recommended reserve</span><span class="v">'+money0(res.remaining)+'</span></div></div>'+
+       '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(res.ratio*100)+'" aria-label="Tax reserve progress" style="margin-top:14px"><i style="width:'+(res.ratio*100).toFixed(1)+'%"></i></div>'+
+       '<p style="margin-top:10px;font-weight:500">'+resText+'</p>'+
+       '<p style="margin-top:10px"><button class="link" data-act="goReserve">See how much to set aside</button></p>'+
+     '</div></div></div>'+
+     '<div class="card" aria-labelledby="thH"><h2 class="card-title" id="thH" style="margin-bottom:16px">Tax Health</h2><div class="status"><div class="light" aria-hidden="true">'+st[0]+'</div><div><h3>'+st[1]+'</h3><p class="muted" style="margin-top:6px">'+(res.target<=0?'Nothing to set aside yet. As you add income, this will update.':st[2])+'</p></div></div>'+
+     '<div class="notice" style="margin-top:18px">Estimated only. Your actual tax may differ. This is not tax advice.</div></div></section>'+
+   '<section class="card chart" aria-labelledby="chH"><div class="card-head"><div><h2 class="card-title" id="chH">Income vs Expenses</h2><p class="card-sub">Month by month for '+y+'.</p></div>'+
+     '<div class="legend"><span><i style="background:var(--rose)"></i>Income</span><span><i style="background:var(--blush-2)"></i>Expenses</span><span><i style="background:transparent;border:2px solid var(--ink);border-radius:50%;width:10px;height:10px"></i>Profit</span></div></div>'+chartHTML()+'</section>'+
+   '<section class="grid-reserve"><div class="card" aria-labelledby="rtH"><div class="card-head"><h2 class="card-title" id="rtH">Recent Transactions</h2><div class="head-actions">'+btn('Add Income','addIncome','btn-soft btn-sm','plus')+btn('Add Expense','addExpense','btn-soft btn-sm','plus')+'</div></div>'+
+     (recent.length?'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Category</th><th class="r">Amount</th></tr></thead><tbody>'+
+       recent.map(function(r){return '<tr><td data-label="Date">'+fmtDate(r.date)+'</td><td data-label="Description" class="desc first">'+esc(r.desc)+'</td><td data-label="Type"><span class="badge '+(r.type==='Income'?'good':'plain')+'">'+r.type+'</span></td><td data-label="Category">'+esc(r.cat)+'</td><td data-label="Amount" class="r num '+(r.amount<0?'':'')+'">'+(r.amount<0?'−':'+')+money(Math.abs(r.amount))+'</td></tr>'}).join('')+'</tbody></table></div>':
+       emptyState('🌱','No transactions yet','Add income or an expense to see your latest activity here.'))+'</div>'+
+     '<div class="card" aria-labelledby="clH"><h2 class="card-title" id="clH">What am I forgetting?</h2><p class="card-sub">Your Tax Season Checklist, based on how you earn.</p>'+
+       '<div style="margin:18px 0 8px;font:600 28px/1 var(--serif)">'+chk.done+' <span class="muted" style="font:500 16px var(--sans)">of '+chk.total+' reviewed</span></div>'+
+       '<div class="bar" aria-hidden="true"><i style="width:'+(chk.total?chk.done/chk.total*100:0)+'%"></i></div>'+
+       '<p style="margin-top:16px"><button class="btn btn-soft btn-sm" data-act="goChecklist">Open checklist</button></p></div></section>'+
+  '</div>';
+};
+
+/* ---------- Income ---------- */
+function incomeMatches(i){
+  var f=ui.incomeFilter,q=ui.incomeQ.trim().toLowerCase();
+  if(f==='Etsy'&&i.source!=='Etsy')return false;
+  if(f==='Freelance'&&i.source!=='Freelance')return false;
+  if(f==='UGC'&&i.source!=='UGC')return false;
+  if(f==='Gig Work'&&GIG.indexOf(i.source)<0)return false;
+  if(f==='Other'&&(['Etsy','Freelance','UGC'].indexOf(i.source)>=0||GIG.indexOf(i.source)>=0))return false;
+  if(q&&(i.description+' '+i.source+' '+(i.notes||'')).toLowerCase().indexOf(q)<0)return false;
+  return true;
+}
+function sortedBy(arr){return arr.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.created||0)-(a.created||0)})}
+function actionCell(edit,del,id,label){
+  return '<td class="actions"><button class="icon-btn" data-act="'+edit+'" data-id="'+id+'" aria-label="Edit '+esc(label)+'" title="Edit">'+ic('edit',18)+'</button><button class="icon-btn danger" data-act="'+del+'" data-id="'+id+'" aria-label="Delete '+esc(label)+'" title="Delete">'+ic('trash',18)+'</button></td>';
+}
+function incomeTableHTML(){
+  var rows=sortedBy(yIncome(S).filter(incomeMatches));
+  if(!rows.length)return '<div class="empty" style="padding:36px 10px"><h3>No matches</h3><p>Try a different search or filter.</p></div>';
+  var total=sum(rows,function(r){return Number(r.amount)});
+  return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>Source</th><th class="r">Amount</th><th><span class="sr">Actions</span></th></tr></thead><tbody>'+
+    rows.map(function(r){return '<tr><td data-label="Date">'+fmtDate(r.date)+'</td><td data-label="Description" class="first"><span class="desc">'+esc(r.description)+'</span>'+(r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</td><td data-label="Source"><span class="badge">'+esc(r.source)+'</span></td><td data-label="Amount" class="r num">'+money(r.amount)+'</td>'+actionCell('editIncome','delIncome',r.id,r.description)+'</tr>'}).join('')+
+    '</tbody><tfoot><tr><td colspan="3">Showing '+rows.length+' '+(rows.length===1?'entry':'entries')+'</td><td class="r num" colspan="2">'+money(total)+'</td></tr></tfoot></table></div>';
+}
+function chipsHTML(list,current,attr){return '<div class="chips" role="group" aria-label="Filter">'+list.map(function(f){return '<button class="chip" data-act="'+attr+'" data-f="'+esc(f)+'" aria-pressed="'+(f===current?'true':'false')+'">'+esc(f)+'</button>'}).join('')+'</div>'}
+views.income=function(){
+  var items=yIncome(S),total=calculateTotalIncome(S);
+  return '<div class="page">'+pageHead('Income','Keep every source of business income organized in one place.',btn('Add Income','addIncome','btn-primary','plus'))+
+   '<div class="card summary-row"><div><div class="muted">Total income this year</div><div class="big">'+money(total)+'</div></div><div class="muted">'+items.length+' '+(items.length===1?'entry':'entries')+' in '+S.settings.taxYear+'</div></div>'+
+   (items.length?'<div class="card"><div class="toolbar" style="margin-bottom:16px"><div class="search">'+ic('search',18)+'<label class="sr" for="incomeSearch">Search income</label><input id="incomeSearch" type="text" placeholder="Search income" value="'+esc(ui.incomeQ)+'" autocomplete="off"></div>'+chipsHTML(['All','Etsy','Freelance','UGC','Gig Work','Other'],ui.incomeFilter,'incomeFilter')+'</div><div id="incomeTable">'+incomeTableHTML()+'</div></div>':
+    '<div class="card">'+emptyState('🌱','No income yet','Add a payment and TaxBloom will start building your tax snapshot automatically.',btn('Add Income','addIncome','btn-primary','plus'))+'</div>')+
+  '</div>';
+};
+function incomeForm(item){
+  var edit=!!item;
+  formModal({title:edit?'Edit income':'Add income',submit:edit?'Save changes':'Add income',fields:[
+    {name:'date',label:'Date',type:'date',required:true,value:item?item.date:defaultDate()},
+    {name:'amount',label:'Amount',type:'money',required:true,value:item?Number(item.amount).toFixed(2):''},
+    {name:'description',label:'Description',type:'text',required:true,span:true,value:item?item.description:'',placeholder:'e.g., Etsy payout'},
+    {name:'source',label:'Income source',type:'select',options:withCur(S.incomeSources,item&&item.source),value:item?item.source:pickDefault(S.incomeSources,'Etsy'),span:true},
+    {name:'notes',label:'Notes',type:'textarea',span:true,value:item?item.notes:''}
+  ],onSubmit:function(v){
+    if(edit){Object.assign(item,{date:v.date,amount:v.amount,description:v.description,source:v.source,notes:v.notes})}
+    else S.income.push({id:uid(),created:Date.now(),date:v.date,amount:v.amount,description:v.description,source:v.source,notes:v.notes});
+    commit(edit?'Income updated':'Income added');
+  }});
+}
+function withCur(list,cur){return cur&&list.indexOf(cur)<0?list.concat([cur]):list}
+function pickDefault(list,pref){return list.indexOf(pref)>=0?pref:list[0]}
+function defaultDate(){var t=todayISO();return t.slice(0,4)===String(S.settings.taxYear)?t:S.settings.taxYear+'-12-31'}
+
+/* ---------- Expenses ---------- */
+function expenseMatches(e){
+  var q=ui.expQ.trim().toLowerCase();
+  if(ui.expCat!=='All'&&e.category!==ui.expCat)return false;
+  if(q&&(e.description+' '+e.category+' '+(e.notes||'')).toLowerCase().indexOf(q)<0)return false;
+  return true;
+}
+function expenseTableHTML(){
+  var rows=sortedBy(yExpenses(S).filter(expenseMatches));
+  if(!rows.length)return '<div class="empty" style="padding:36px 10px"><h3>No matches</h3><p>Try a different search or category.</p></div>';
+  var tot=sum(rows,function(r){return Number(r.amount)}),totB=sum(rows,bizAmount);
+  return '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="r">Amount</th><th class="r">Business use</th><th class="r">Potential business amount</th><th><span class="sr">Actions</span></th></tr></thead><tbody>'+
+    rows.map(function(r){var p=r.bizPct==null?100:r.bizPct;return '<tr><td data-label="Date">'+fmtDate(r.date)+'</td><td data-label="Description" class="first"><span class="desc">'+esc(r.description)+'</span>'+(r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</td><td data-label="Category"><span class="badge">'+esc(r.category)+'</span></td><td data-label="Amount" class="r num">'+money(r.amount)+'</td><td data-label="Business use" class="r num">'+num(p,1)+'%</td><td data-label="Potential amount" class="r num"><strong>'+money(bizAmount(r))+'</strong></td>'+actionCell('editExpense','delExpense',r.id,r.description)+'</tr>'}).join('')+
+    '</tbody><tfoot><tr><td colspan="3">Showing '+rows.length+' '+(rows.length===1?'entry':'entries')+'</td><td class="r num">'+money(tot)+'</td><td></td><td class="r num" colspan="2">'+money(totB)+'</td></tr></tfoot></table></div>';
+}
+var EXP_GROUPS=[['Advertising',['Advertising']],['Software',['Software & Subscriptions']],['Supplies',['Office Supplies','Packaging']],['Shipping',['Postage & Shipping']]];
+views.expenses=function(){
+  var items=yExpenses(S),by=expenseByCategory(S),mil=calculateMileageDeduction(S),used=[];
+  var cards=EXP_GROUPS.map(function(g){g[1].forEach(function(c){used.push(c)});return metric('expenses',g[0],money(sum(g[1],function(c){return by[c]||0})),'year to date')});
+  var other=0;Object.keys(by).forEach(function(c){if(used.indexOf(c)<0)other+=by[c]});
+  cards.splice(4,0,metric('mileage','Mileage',money(mil.amount),num(mil.miles,1)+' business miles'));
+  cards.push(metric('more','Other',money(other),'everything else'));
+  var total=calculateTotalExpenses(S);
+  return '<div class="page">'+pageHead('Expenses','Track the costs that keep your business running.',btn('Add Expense','addExpense','btn-primary','plus'))+
+   '<div class="notice"><strong>Potential business expenses.</strong> TaxBloom adds up what you log and applies your business-use percentage. It doesn’t decide what’s deductible. Review with a tax professional.</div>'+
+   '<section class="grid-3" aria-label="Category totals">'+cards.join('')+'</section>'+
+   (items.length?'<div class="card"><div class="card-head" style="margin-bottom:14px"><div><div class="muted">Total potential business expenses</div><div class="big">'+money(total)+'</div></div></div>'+
+     '<div class="toolbar" style="margin-bottom:16px"><div class="search">'+ic('search',18)+'<label class="sr" for="expSearch">Search expenses</label><input id="expSearch" type="text" placeholder="Search expenses" value="'+esc(ui.expQ)+'" autocomplete="off"></div>'+
+     '<div class="field" style="min-width:210px"><label class="sr" for="expCat">Filter by category</label><select id="expCat"><option value="All">All categories</option>'+S.expenseCats.map(function(c){return '<option'+(ui.expCat===c?' selected':'')+'>'+esc(c)+'</option>'}).join('')+'</select></div></div><div id="expTable">'+expenseTableHTML()+'</div></div>':
+    '<div class="card">'+emptyState('🌱','No expenses yet 🌱','Start tracking your business expenses and TaxBloom will build your tax snapshot automatically.',btn('Add Expense','addExpense','btn-primary','plus'))+'</div>')+
+  '</div>';
+};
+function expenseForm(item,prefill){
+  var edit=!!item,src=item||prefill||{};
+  formModal({title:edit?'Edit expense':'Add expense',submit:edit?'Save changes':'Add expense',fields:[
+    {name:'date',label:'Date',type:'date',required:true,value:src.date||defaultDate()},
+    {name:'amount',label:'Amount',type:'money',required:true,value:src.amount?Number(src.amount).toFixed(2):''},
+    {name:'description',label:'Description',type:'text',required:true,span:true,value:src.description||'',placeholder:'e.g., Canva Pro'},
+    {name:'category',label:'Category',type:'select',options:withCur(S.expenseCats,src.category),value:src.category||pickDefault(S.expenseCats,'Software & Subscriptions')},
+    {name:'bizPct',label:'Business-use percentage',type:'percent',required:true,value:src.bizPct==null?'100':String(src.bizPct),hint:'Defaults to 100%. Lower it if you also use this personally.'},
+    {name:'notes',label:'Notes',type:'textarea',span:true,value:src.notes||''}
+  ],extra:'<div class="preview" id="expPrev" aria-live="polite"></div>',onMount:function(m,form,prefix){
+    var a=form.elements.amount,p=form.elements.bizPct,out=$('#expPrev',m);
+    function upd(){var am=parseMoney(a.value),pc=parseMoney(String(p.value).replace('%',''));out.textContent='Potential business amount: '+(isNaN(am)||isNaN(pc)?money(0):money(am*Math.min(100,Math.max(0,pc))/100))}
+    a.addEventListener('input',upd);p.addEventListener('input',upd);upd();
+  },onSubmit:function(v){
+    if(edit)Object.assign(item,{date:v.date,amount:v.amount,description:v.description,category:v.category,bizPct:v.bizPct,notes:v.notes});
+    else S.expenses.push({id:uid(),created:Date.now(),date:v.date,amount:v.amount,description:v.description,category:v.category,bizPct:v.bizPct,notes:v.notes});
+    commit(edit?'Expense updated':'Expense added');
+  }});
+}
+
+/* ---------- Receipts ---------- */
+views.receipts=function(){
+  var q=ui.recQ.trim().toLowerCase();
+  var list=sortedBy(S.receipts.filter(function(r){return inYear(S,r.date)&&(!q||(r.merchant+' '+r.category+' '+(r.notes||'')).toLowerCase().indexOf(q)>=0)}));
+  var all=S.receipts.filter(function(r){return inYear(S,r.date)});
+  return '<div class="page">'+pageHead('Receipt Vault','Keep your supporting documents organized all year.',btn('Add Receipt','addReceipt','btn-primary','plus'))+
+   '<div class="notice">TaxBloom helps you organize receipts. It does not determine whether an expense is legally deductible. Receipt files stay in this browser on this device.</div>'+
+   (all.length?'<div class="toolbar"><div class="search">'+ic('search',18)+'<label class="sr" for="recSearch">Search receipts</label><input id="recSearch" type="text" placeholder="Search receipts" value="'+esc(ui.recQ)+'" autocomplete="off"></div><div class="muted">'+all.length+' '+(all.length===1?'receipt':'receipts')+' · '+money(sum(all,function(r){return Number(r.amount)}))+' total</div></div>':'')+
+   (all.length?(list.length?'<div class="rec-grid">'+list.map(receiptCard).join('')+'</div>':'<div class="card"><div class="empty"><h3>No matches</h3><p>Try a different search.</p></div></div>'):
+    '<div class="card">'+emptyState('🧾','No receipts yet 🌱','Upload a photo or PDF and keep your supporting documents in one tidy place.',btn('Add Receipt','addReceipt','btn-primary','plus'))+'</div>')+
+  '</div>';
+};
+function receiptCard(r){
+  var isImg=r.fileType&&r.fileType.indexOf('image/')===0;
+  var thumb=r.fileId&&isImg?'<img alt="" data-thumb="'+r.fileId+'" hidden>':'';
+  var ph='<div class="ph">'+ic(r.fileId?(isImg?'image':'file'):'receipts',34)+'<span>'+(r.fileId?(isImg?'Loading preview':'PDF document'):'No file attached')+'</span></div>';
+  return '<article class="card rec" aria-label="Receipt from '+esc(r.merchant)+'"><div class="thumb">'+thumb+'<div class="ph-wrap">'+ph+'</div></div>'+
+    '<div class="body"><div class="row"><span class="m">'+esc(r.merchant)+'</span><span class="num" style="font-weight:700">'+money(r.amount)+'</span></div>'+
+    '<div class="row muted"><span>'+fmtDate(r.date)+'</span><span class="badge">'+esc(r.category)+'</span></div>'+
+    '<div class="muted" style="font-size:13px">'+num(r.bizPct==null?100:r.bizPct,1)+'% business use'+(r.notes?' · '+esc(r.notes):'')+'</div></div>'+
+    '<div class="acts"><button class="btn btn-soft btn-sm" data-act="viewReceipt" data-id="'+r.id+'">'+ic('eye',16)+'View</button><button class="btn btn-ghost btn-sm" data-act="editReceipt" data-id="'+r.id+'">'+ic('edit',16)+'Edit</button><button class="icon-btn danger" data-act="delReceipt" data-id="'+r.id+'" aria-label="Delete receipt from '+esc(r.merchant)+'">'+ic('trash',18)+'</button></div></article>';
+}
+function loadThumbs(){
+  $$('img[data-thumb]').forEach(function(img){
+    fileURL(img.dataset.thumb).then(function(url){
+      if(!url||!document.contains(img))return;
+      img.src=url;img.hidden=false;
+      var w=img.parentNode.querySelector('.ph-wrap');if(w)w.hidden=true;
+    });
+  });
+}
+function receiptForm(item){
+  var edit=!!item;
+  formModal({title:edit?'Edit receipt':'Add receipt',submit:edit?'Save changes':'Save receipt',fields:[
+    {name:'merchant',label:'Merchant',type:'text',required:true,span:true,value:item?item.merchant:'',placeholder:'e.g., Staples'},
+    {name:'date',label:'Date',type:'date',required:true,value:item?item.date:defaultDate()},
+    {name:'amount',label:'Amount',type:'money',required:true,value:item?Number(item.amount).toFixed(2):''},
+    {name:'category',label:'Category',type:'select',options:withCur(S.expenseCats,item&&item.category),value:item?item.category:pickDefault(S.expenseCats,'Office Supplies')},
+    {name:'bizPct',label:'Business-use percentage',type:'percent',required:true,value:item&&item.bizPct!=null?String(item.bizPct):'100'},
+    {name:'file',label:'Receipt image or PDF',type:'file',span:true,hint:edit&&item.fileName?'Current file: '+item.fileName+'. Choose a new one to replace it.':'Stored only in this browser. Up to 25 MB.'},
+    {name:'notes',label:'Notes',type:'textarea',span:true,value:item?item.notes:''}
+  ].concat(edit?[]:[{name:'alsoExpense',label:'Also log this as an expense',type:'checkbox',hint:'Adds a matching entry on the Expenses page so your totals include it.',value:false}]),
+  onSubmit:function(v){
+    var rec=edit?item:{id:uid(),created:Date.now()};
+    Object.assign(rec,{merchant:v.merchant,date:v.date,amount:v.amount,category:v.category,bizPct:v.bizPct,notes:v.notes});
+    var done=function(){
+      if(!edit)S.receipts.push(rec);
+      if(!edit&&v.alsoExpense)S.expenses.push({id:uid(),created:Date.now(),date:v.date,amount:v.amount,description:v.merchant,category:v.category,bizPct:v.bizPct,notes:'From receipt'});
+      commit(edit?'Receipt updated':'Receipt saved');
+    };
+    if(v.file){
+      var fid=uid(),old=rec.fileId;
+      return IDB.put({id:fid,name:v.file.name,type:v.file.type,blob:v.file}).then(function(){
+        rec.fileId=fid;rec.fileName=v.file.name;rec.fileType=v.file.type;if(old)dropFile(old);done();
+      }).catch(function(){toast('This browser couldn’t store the file, so the receipt was saved without it.','warn');done()});
+    }
+    done();
+  }});
+}
+function viewReceipt(r){
+  var body='<div class="kv"><div><span class="k">Date</span><span class="v">'+fmtDate(r.date)+'</span></div><div><span class="k">Amount</span><span class="v">'+money(r.amount)+'</span></div><div><span class="k">Category</span><span class="v">'+esc(r.category)+'</span></div><div><span class="k">Business use</span><span class="v">'+num(r.bizPct==null?100:r.bizPct,1)+'%</span></div>'+(r.notes?'<div><span class="k">Notes</span><span class="v">'+esc(r.notes)+'</span></div>':'')+'</div>';
+  var isImg=r.fileType&&r.fileType.indexOf('image/')===0;
+  openModal({title:r.merchant,size:'lg',html:'<div id="recView">'+(r.fileId?'<p class="muted">Loading file…</p>':'<div class="notice">No file is attached to this receipt.</div>')+'</div>'+body+'<div class="modal-foot"><button class="btn btn-ghost" data-act="closeModal">Close</button></div>',onMount:function(m){
+    if(!r.fileId)return;
+    fileURL(r.fileId).then(function(url){
+      var box=$('#recView',m);if(!box)return;
+      if(!url){box.innerHTML='<div class="notice warn">This file isn’t available in this browser anymore.</div>';return}
+      box.innerHTML=(isImg?'<img class="view-img" alt="Receipt from '+esc(r.merchant)+'" src="'+url+'">':'<iframe class="view-pdf" title="Receipt PDF from '+esc(r.merchant)+'" src="'+url+'"></iframe>')+'<p style="margin-top:10px"><button class="btn btn-ghost btn-sm" id="saveRec">'+ic('download',16)+'Save a copy</button></p>';
+      $('#saveRec',box).addEventListener('click',function(){IDB.get(r.fileId).then(function(rec){if(rec)saveFile(rec.name||'receipt',rec.blob).then(function(s){if(s==='saved')toast('Receipt saved')})})});
+    });
+  }});
+}
+
+/* ---------- Mileage ---------- */
+views.mileage=function(){
+  var mil=calculateMileageDeduction(S),trips=sortedBy(yMileage(S)),st=S.settings;
+  var h1=st.mileageRateH1,h2=st.mileageRateH2;
+  var rateTxt=(h1==null||h1==='')&&(h2==null||h2==='')?'Enter the IRS mileage rate for your tax year.':
+    (h1===h2?num(h1*100,1)+'¢ per mile':'Jan–Jun '+(h1===''||h1==null?'—':num(h1*100,1)+'¢')+' · Jul–Dec '+(h2===''||h2==null?'—':num(h2*100,1)+'¢'));
+  return '<div class="page">'+pageHead('Mileage','Keep a clean record of business driving.',btn('Add Trip','addTrip','btn-primary','plus'))+
+   '<section class="grid-3">'+metric('mileage','Total business miles',num(mil.miles,1),mil.count+' '+(mil.count===1?'trip':'trips'))+
+    metric('tax','Estimated mileage amount',mil.missing?'Rate needed':money(mil.amount),'miles × your mileage rate',mil.missing?'neg':'')+
+    '<div class="card metric"><div class="lbl">Mileage rate in use</div><div class="val" style="font-size:20px;line-height:1.3">'+esc(rateTxt)+'</div><div class="sub"><button class="link" data-act="goMileageSettings">Change rates in Settings</button></div></div></section>'+
+   (mil.missing?'<div class="notice warn" role="alert">Enter the IRS mileage rate for your tax year in Settings so TaxBloom can estimate this amount.</div>':'')+
+   '<div class="notice">The IRS set 2026 business rates at 72.5¢ per mile for Jan–Jun and 76¢ for Jul–Dec. Verify the current rate at irs.gov. The standard mileage rate and actual vehicle expenses generally can’t both be used for the same vehicle, so review with a tax professional.</div>'+
+   (trips.length?'<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Trip</th><th>Business purpose</th><th class="r">Miles</th><th class="r">Rate</th><th class="r">Amount</th><th><span class="sr">Actions</span></th></tr></thead><tbody>'+
+     trips.map(function(t){var r=mileageRateFor(S,t.date);return '<tr><td data-label="Date">'+fmtDate(t.date)+'</td><td data-label="Trip" class="first"><span class="desc">'+esc(t.from)+' → '+esc(t.to)+'</span></td><td data-label="Purpose">'+esc(t.purpose)+'</td><td data-label="Miles" class="r num">'+num(t.miles,1)+'</td><td data-label="Rate" class="r num">'+(r==null?'—':num(r*100,1)+'¢')+'</td><td data-label="Amount" class="r num">'+(r==null?'—':money(t.miles*r))+'</td>'+actionCell('editTrip','delTrip',t.id,t.from+' to '+t.to)+'</tr>'}).join('')+
+     '</tbody><tfoot><tr><td colspan="3">'+trips.length+' '+(trips.length===1?'trip':'trips')+'</td><td class="r num">'+num(mil.miles,1)+'</td><td></td><td class="r num" colspan="2">'+(mil.missing?'—':money(mil.amount))+'</td></tr></tfoot></table></div></div>':
+    '<div class="card">'+emptyState('🚗','No trips yet 🌱','Log a business trip and TaxBloom will keep a clean mileage record for you.',btn('Add Trip','addTrip','btn-primary','plus'))+'</div>')+
+  '</div>';
+};
+function tripForm(item){
+  var edit=!!item;
+  formModal({title:edit?'Edit trip':'Add trip',submit:edit?'Save changes':'Add trip',fields:[
+    {name:'date',label:'Date',type:'date',required:true,value:item?item.date:defaultDate()},
+    {name:'miles',label:'Miles',type:'miles',required:true,value:item?item.miles:''},
+    {name:'from',label:'Starting location',type:'text',required:true,value:item?item.from:'',placeholder:'e.g., Home'},
+    {name:'to',label:'Destination',type:'text',required:true,value:item?item.to:'',placeholder:'e.g., Post office'},
+    {name:'purpose',label:'Business purpose',type:'text',required:true,span:true,value:item?item.purpose:'',placeholder:'e.g., Ship Etsy orders'}
+  ],onSubmit:function(v){
+    if(edit)Object.assign(item,{date:v.date,miles:v.miles,from:v.from,to:v.to,purpose:v.purpose});
+    else S.mileage.push({id:uid(),created:Date.now(),date:v.date,miles:v.miles,from:v.from,to:v.to,purpose:v.purpose});
+    commit(edit?'Trip updated':'Trip added');
+  }});
+}
+
+/* ---------- Tax estimate / reserve / calendar ---------- */
+function setField(label,name,kind,val,opts){
+  opts=opts||{};var id='s-'+name+(opts.suffix||''),h=opts.hint?'<div class="hint" id="'+id+'-h">'+esc(opts.hint)+'</div>':'';
+  var d=' data-setting="'+name+'" data-kind="'+kind+'"'+(h?' aria-describedby="'+id+'-h"':'');
+  var ctl='';
+  if(kind==='money')ctl='<div class="money-wrap"><span aria-hidden="true">$</span><input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" value="'+esc(val?Number(val).toFixed(2).replace(/\.00$/,''):'0')+'"'+d+'></div>';
+  else if(kind==='int')ctl='<input id="'+id+'" type="number" min="0" max="30" step="1" value="'+esc(val||0)+'"'+d+'>';
+  else if(kind==='cents')ctl='<div class="suffix-wrap"><input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" value="'+(val===''||val==null?'':esc(+(val*100).toFixed(3)))+'" placeholder="e.g., 72.5"'+d+'><span aria-hidden="true">¢ / mile</span></div>';
+  else if(kind==='percent')ctl='<div class="suffix-wrap"><input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" value="'+esc(val)+'"'+d+'><span aria-hidden="true">% of profit</span></div>';
+  else if(kind==='text')ctl='<input id="'+id+'" type="text" maxlength="60" value="'+esc(val)+'" autocomplete="given-name"'+d+'>';
+  else if(kind==='select')ctl='<select id="'+id+'"'+d+'>'+opts.options.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(o[0])===String(val)?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')+'</select>';
+  return '<div class="field"><label for="'+id+'">'+esc(label)+'</label>'+ctl+h+'</div>';
+}
+function taxResultHTML(){
+  var e=calculateTaxEstimate(S);
+  var projected=e.factor!==1;
+  return '<div class="kv">'+
+    '<div><span class="k">Total business income</span><span class="v">'+money0(e.income)+'</span></div>'+
+    '<div><span class="k">− Potential business expenses</span><span class="v">'+money0(e.expenses)+'</span></div>'+
+    '<div><span class="k">− Mileage amount</span><span class="v">'+money0(e.mileage)+'</span></div>'+
+    '<div class="total"><span class="k">= Estimated business profit'+(projected?' (projected full year)':'')+'</span><span class="v '+(e.rawProfit<0?'neg':'')+'">'+money0(e.rawProfit<0?e.rawProfit:e.profit)+'</span></div>'+
+    '<div><span class="k">Self-employment tax</span><span class="v">'+money0(e.seTax)+'</span></div>'+
+    '<div><span class="k">Federal income tax</span><span class="v">'+money0(e.incomeTax)+'</span></div>'+
+    '<div class="total"><span class="k">Estimated total tax</span><span class="v">'+money0(e.totalTax)+'</span></div>'+
+    (e.withholding+e.otherPaid+e.paidQ>0?'<div><span class="k">− Withholding and payments already made</span><span class="v">'+money0(e.withholding+e.otherPaid+e.paidQ)+'</span></div>':'')+
+    '<div class="total"><span class="k">Suggested tax reserve</span><span class="v" style="color:var(--rose-text)">'+money0(e.stillOwed)+'</span></div></div>'+
+    '<p class="muted" style="margin-top:12px;font-size:13.5px">About '+pct(e.effective)+' of your total estimated income. Your top federal bracket rate in this estimate is '+pct(e.marginal)+'.</p>';
+}
+function methodHTML(){
+  var e=calculateTaxEstimate(S),st=S.settings,fsLabel=(FILING.filter(function(f){return f[0]===e.fs})[0]||[])[1];
+  var li=function(t,how,amt){return '<li><span>'+t+'</span><span class="amt">'+amt+'</span><span class="how">'+how+'</span></li>'};
+  var rows=[
+    li('Business income','Everything on your Income page dated '+st.taxYear,money(e.income)),
+    li('Less potential business expenses','Each expense × its business-use percentage','−'+money(e.expenses)),
+    li('Less mileage amount','Business miles × your mileage rate for the trip date','−'+money(e.mileage)),
+    li('Business profit'+(e.factor!==1?' (projected)':''),e.rawProfit<0?'A loss is treated as $0 profit for this estimate':(e.factor!==1?'Year-to-date profit scaled to a full year (× '+num(e.factor,2)+')':'Income minus expenses and mileage'),money(e.profit)),
+    li('Self-employment tax','92.35% of profit = '+money(e.seBase)+'; 12.4% Social Security (up to the $184,500 wage base) + 2.9% Medicare',money(e.seTax)),
+    li('Half of self-employment tax','Reduces income subject to income tax','−'+money(e.halfSE)),
+    li('Other household income','As you entered it','+'+money(e.other)),
+    li('Standard deduction','2026 amount for '+esc(fsLabel||'Single')+'; itemizing isn’t modeled','−'+money(e.std))
+  ];
+  if(st.qbi)rows.push(li('Qualified business income deduction','Up to 20% of qualified profit, only when taxable income is under the 2026 threshold','−'+money(e.qbi)));
+  rows.push(li('Taxable income','Never below $0',money(e.taxable)));
+  rows.push(li('Federal income tax before credits','2026 brackets: '+(e.bracketRows.length?e.bracketRows.map(function(r){return pct(r.rate)+' on '+money0(r.slice)}).join(', '):'no taxable income'),money(e.bracketTax)));
+  rows.push(li('Less tax credits','As you entered them. Dependents are recorded but credits aren’t calculated','−'+money(e.credits)));
+  rows.push(li('Estimated total tax','Self-employment tax + federal income tax',money(e.totalTax)));
+  rows.push(li('Less withholding and payments','Withholding, other payments, and estimated payments you logged','−'+money(e.withholding+e.otherPaid+e.paidQ)));
+  rows.push(li('Still to set aside','What the reserve works toward (unless you chose a different goal in Settings)',money(e.stillOwed)));
+  return '<ol class="method">'+rows.join('')+'</ol>';
+}
+function refreshTax(){
+  var a=$('#taxResult'),b=$('#taxMethod');
+  if(a)a.innerHTML=taxResultHTML();
+  if(b)b.innerHTML=methodHTML();
+}
+function reserveBlock(){
+  var est=calculateTaxEstimate(S),res=calculateTaxReserve(S,est),st=STATUS_COPY[res.status];
+  var goal=S.settings.reserveMode==='percent'?pct(S.settings.reserveValue/100)+' of your profit':S.settings.reserveMode==='amount'?'a fixed amount':'your tax estimate';
+  return '<div class="grid-reserve"><div class="card"><div class="card-head"><div><h2 class="card-title">How much should I set aside?</h2><p class="card-sub">Your goal is based on '+goal+'. You can change it in Settings.</p></div></div>'+
+    '<div class="reserve-layout"><div>'+bloomSVG(res.ratio,150,false)+'</div><div>'+
+    '<div class="kv"><div><span class="k">Estimated annual tax</span><span class="v">'+money0(est.totalTax)+'</span></div>'+
+    '<div><span class="k">Reserve goal</span><span class="v">'+money0(res.target)+'</span></div>'+
+    '<div><span class="k">Already set aside</span><span class="v">'+money0(res.saved)+'</span></div>'+
+    '<div class="total"><span class="k">Remaining</span><span class="v">'+money0(res.remaining)+'</span></div>'+
+    '<div><span class="k">Suggested monthly amount</span><span class="v">'+money0(res.monthly)+'</span></div>'+
+    '<div><span class="k">Suggested quarterly amount</span><span class="v">'+money0(res.quarterly)+'</span></div></div>'+
+    '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(res.ratio*100)+'" aria-label="Tax reserve progress" style="margin-top:14px"><i style="width:'+(res.ratio*100).toFixed(1)+'%"></i></div>'+
+    '<p style="margin-top:10px;font-weight:500">'+(res.target<=0?'Add income to see a suggested amount.':res.ratio>=1?'You’ve fully set aside your reserve goal.':'You’re '+pct(res.ratio)+' of the way toward your reserve.')+'</p></div></div>'+
+    '<div class="notice" style="margin-top:18px">Monthly spreads what’s remaining over the '+res.monthsLeft+' '+(res.monthsLeft===1?'month':'months')+' left in the year. Quarterly is your estimated tax (after withholding) divided by four.</div></div>'+
+    '<div class="card"><h2 class="card-title">Money set aside</h2><p class="card-sub" style="margin-bottom:16px">Enter how much you’ve saved for taxes and still have on hand.</p>'+
+    '<form id="asideForm" novalidate class="field"><label for="asideAmt">Already set aside</label><div class="money-wrap"><span aria-hidden="true">$</span><input type="text" id="asideAmt" inputmode="decimal" value="'+esc(Number(S.settings.setAside||0).toFixed(2))+'" aria-describedby="asideErr"></div><div class="err" id="asideErr" role="alert"></div><button class="btn btn-primary" type="submit" style="margin-top:8px">Update progress</button></form>'+
+    '<div class="status" style="margin-top:24px"><div class="light" aria-hidden="true">'+st[0]+'</div><div><h3>'+st[1]+'</h3><p class="muted" style="margin-top:4px;font-size:14.5px">'+(res.target<=0?'Nothing to set aside yet.':st[2])+'</p></div></div></div></div>';
+}
+function calendarBlock(){
+  var est=calculateTaxEstimate(S),qEst=est.base/4,today=todayISO();
+  var paid=function(q){return S.taxPayments.filter(function(p){return p.q===q})[0]};
+  var totPaid=sum(S.taxPayments,function(p){return Number(p.amount)||0}),totEst=est.base;
+  var rows=QUARTERS.map(function(Q){
+    var p=paid(Q.q),past=!p&&Q.due<today,rem=Math.max(0,qEst-(p?Number(p.amount):0));
+    return '<div class="q"><div><div class="qn">Payment '+Q.q+'</div><div class="muted" style="font-size:13.5px">Income from '+Q.period+'</div><div style="margin-top:6px"><span class="badge '+(p?'good':past?'warn':'plain')+'">'+(p?'Paid':past?'Not paid · past due date':'Not paid')+'</span></div></div>'+
+      '<div><div class="lab">Due date</div><div class="v">'+fmtDate(Q.due)+'</div></div>'+
+      '<div><div class="lab">Estimated amount</div><div class="v">'+money0(qEst)+'</div></div>'+
+      '<div><div class="lab">'+(p?'Paid '+fmtDate(p.date):'Amount paid')+'</div><div class="v">'+(p?money(p.amount):'—')+'</div><div class="lab" style="margin-top:4px">Remaining: '+money0(rem)+'</div></div>'+
+      '<div class="act">'+(p?'<button class="btn btn-ghost btn-sm" data-act="markPaid" data-q="'+Q.q+'">Edit payment</button> <button class="btn btn-ghost btn-sm" data-act="unpaid" data-q="'+Q.q+'">Mark not paid</button>':'<button class="btn btn-primary btn-sm" data-act="markPaid" data-q="'+Q.q+'">Mark as paid</button>')+'</div></div>';
+  }).join('');
+  return '<div class="card"><div class="card-head"><div><h2 class="card-title">'+S.settings.taxYear+' quarterly tax calendar</h2><p class="card-sub">Federal estimated payment periods and due dates.</p></div></div>'+
+    '<div class="grid-3" style="margin-bottom:18px"><div class="notice"><strong>'+money0(totEst)+'</strong><br>Estimated for the year (after withholding)</div><div class="notice"><strong>'+money(totPaid)+'</strong><br>Paid so far</div><div class="notice"><strong>'+money0(Math.max(0,totEst-totPaid))+'</strong><br>Remaining</div></div>'+
+    '<div class="quarters">'+rows+'</div>'+
+    '<div class="notice" style="margin-top:18px">Dates match the IRS Form 1040-ES schedule for '+S.settings.taxYear+'. Verify deadlines with the IRS, since they can shift for weekends, holidays, and your situation. Estimated amounts split your estimate into four equal parts, which isn’t the only way to pay.</div></div>';
+}
+views.tax=function(){
+  var st=S.settings,tab=ui.taxTab;
+  var tabs=[['estimate','Estimate'],['reserve','Reserve'],['calendar','Quarterly calendar']];
+  var body='';
+  if(tab==='estimate'){
+    body='<div class="grid-2" style="align-items:start"><div class="card"><div class="card-head" style="margin-bottom:6px"><div><h2 class="card-title">Your inputs</h2><p class="card-sub">Changes save automatically on this device.</p></div></div>'+
+      '<div class="form-grid" style="margin-top:14px">'+
+      '<div class="span-2">'+setField('Filing status','filingStatus','select',st.filingStatus,{options:FILING})+'</div>'+
+      setField('Other household income','otherIncome','money',st.otherIncome,{hint:'Wages or other income not tracked here.'})+
+      setField('Estimated withholding','withholding','money',st.withholding,{hint:'Tax withheld from other income.'})+
+      setField('Dependents','dependents','int',st.dependents,{hint:'Recorded for reference. Credits aren’t calculated.'})+
+      setField('Tax credits','credits','money',st.credits,{hint:'Credits you expect to claim.'})+
+      '<div class="span-2">'+setField('Other tax already paid','otherPaid','money',st.otherPaid,{hint:'Payments made outside the quarterly calendar.'})+'</div>'+
+      '<div class="span-2 field"><span class="flabel" id="basisL">Estimate basis</span><div class="chips" role="radiogroup" aria-labelledby="basisL">'+
+        [['ytd','Year to date'],['annualized','Projected full year']].map(function(o){return '<label class="pick"><input type="radio" name="basis" value="'+o[0]+'" data-setting="basis" data-kind="radio"'+(st.basis===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div>'+
+        '<div class="hint">Year to date uses only what you’ve logged. Projected scales it to a full year.</div></div>'+
+      '<div class="span-2"><label class="check"><input type="checkbox" data-setting="qbi" data-kind="check"'+(st.qbi?' checked':'')+'><span>Include a qualified business income deduction in the estimate<span class="hint" style="display:block">Up to 20% of qualified profit. Off by default to keep the estimate conservative.</span></span></label></div>'+
+      '</div></div>'+
+      '<div style="display:grid;gap:20px"><div class="card"><div class="card-head" style="margin-bottom:10px"><div><h2 class="card-title">Your estimate</h2><p class="card-sub">What you may want to set aside.</p></div><span class="badge warn">Estimated only</span></div><div id="taxResult">'+taxResultHTML()+'</div></div>'+disclaimerStrip()+'</div></div>'+
+      '<details class="about"><summary>About this estimate</summary><div class="body"><p>This is a simplified, conservative estimate meant to help you plan. It is not tax advice and it isn’t a tax return.</p>'+
+      '<p><strong>What it considers</strong></p><ul><li>Your logged business income, potential business expenses, and mileage</li><li>Self-employment tax using 2026 Social Security and Medicare rates</li><li>The 2026 standard deduction and federal brackets for your filing status</li><li>Other household income, withholding, credits, and payments you enter</li></ul>'+
+      '<p><strong>What it leaves out</strong></p><ul><li>State and local taxes</li><li>Itemized deductions, retirement or health insurance deductions, and the home office deduction</li><li>Additional Medicare tax, net investment income tax, and alternative minimum tax</li><li>Credit eligibility (including dependent credits), phase-outs, and underpayment penalties</li><li>Social Security wages from other jobs, which can change your self-employment tax</li></ul>'+
+      '<p>Rates reflect 2026 figures from the IRS and Social Security Administration as of October 2026. Verify current IRS rules or consult a qualified tax professional.</p></div></details>'+
+      '<section class="card" aria-labelledby="mtH"><h2 class="card-title" id="mtH">Calculation methodology</h2><p class="card-sub" style="margin-bottom:12px">Here’s how the estimate was produced, step by step.</p><div id="taxMethod">'+methodHTML()+'</div></section>';
+  }else if(tab==='reserve')body='<div id="reserveWrap">'+reserveBlock()+'</div>';
+  else body=calendarBlock();
+  return '<div class="page">'+pageHeadAll('Tax Estimate','See an estimate of what you may want to set aside.','<span class="badge warn">Estimated only</span><span class="badge plain">Not tax advice</span>')+
+    '<div class="seg" role="tablist" aria-label="Tax sections">'+tabs.map(function(t){return '<button role="tab" id="tab-'+t[0]+'" aria-selected="'+(tab===t[0])+'" aria-controls="taxPanel" data-act="taxTab" data-tab="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div>'+
+    '<div id="taxPanel" role="tabpanel" aria-labelledby="tab-'+tab+'" style="display:flex;flex-direction:column;gap:20px">'+body+'</div></div>';
+};
+function markPaidForm(q){
+  var Q=QUARTERS.filter(function(x){return x.q===q})[0],cur=S.taxPayments.filter(function(p){return p.q===q})[0];
+  var est=calculateTaxEstimate(S).base/4;
+  var dflt=todayISO();
+  formModal({title:'Payment '+q+' · due '+fmtDate(Q.due),submit:cur?'Save payment':'Mark as paid',size:'sm',fields:[
+    {name:'amount',label:'Amount paid',type:'money',required:true,value:cur?Number(cur.amount).toFixed(2):(est>0?est.toFixed(2):'')},
+    {name:'date',label:'Date paid',type:'date',required:true,anyYear:true,value:cur?cur.date:dflt}
+  ],onSubmit:function(v){
+    S.taxPayments=S.taxPayments.filter(function(p){return p.q!==q});
+    S.taxPayments.push({q:q,amount:v.amount,date:v.date});
+    commit('Payment '+q+' recorded');
+  }});
+}
+
+/* ---------- Checklist ---------- */
+var CHECK_GENERAL=[['g-income','Review all income',null,'income'],['g-exp','Review business expenses',null,'expenses'],['g-rec','Review receipts',null,'receipts'],['g-mile','Review mileage',null,'mileage'],['g-pay','Review tax payments',null,'payments'],['g-report','Download annual report',null,null]];
+var CHECK_GROUPS=[
+  {id:'etsy',title:'For Etsy sellers',occ:['Etsy Seller'],items:[['etsy-trans','Etsy transaction fees'],['etsy-list','Listing fees'],['etsy-proc','Payment processing fees','Bank Fees'],['etsy-ads','Advertising','Advertising'],['etsy-ship','Shipping','Postage & Shipping'],['etsy-pack','Packaging','Packaging'],['etsy-sup','Supplies','Office Supplies']]},
+  {id:'ugc',title:'For UGC and content creators',occ:['UGC Creator','Content Creator'],items:[['ugc-soft','Software subscriptions','Software & Subscriptions'],['ugc-equip','Camera and equipment','Equipment'],['ugc-props','Props','Office Supplies'],['ugc-edit','Editing software','Software & Subscriptions'],['ugc-ads','Advertising','Advertising'],['ugc-phone','Business-use phone and internet','Telephone & Internet']]},
+  {id:'gig',title:'For gig workers',occ:['Gig Worker'],items:[['gig-mile','Mileage','@mileage'],['gig-veh','Vehicle expenses','Car & Mileage'],['gig-fees','Platform fees'],['gig-phone','Phone and business-use expenses','Telephone & Internet']]},
+  {id:'resell',title:'For online resellers',occ:['Online Reseller'],items:[['res-inv','Inventory and cost of goods (ask a tax professional how to treat these)'],['res-ship','Shipping','Postage & Shipping'],['res-pack','Packaging','Packaging'],['res-fees','Platform and selling fees','Bank Fees']]},
+  {id:'pro',title:'For freelancers, consultants and service providers',occ:['Freelancer','Consultant','Service Provider'],items:[['pro-serv','Professional services','Professional Services'],['pro-soft','Software and subscriptions','Software & Subscriptions'],['pro-home','Home office','Home Office'],['pro-edu','Education and training','Education'],['pro-trav','Business travel','Travel']]}
+];
+function activeChecklist(){
+  var occ=S.settings.occupations||[],by=expenseByCategory(S),groups=[];
+  var gen={title:'General',items:CHECK_GENERAL.map(function(g){
+    var none=false;
+    if(g[3]==='income')none=yIncome(S).length===0;
+    if(g[3]==='expenses')none=yExpenses(S).length===0;
+    if(g[3]==='receipts')none=S.receipts.filter(function(r){return inYear(S,r.date)}).length===0;
+    if(g[3]==='mileage')none=yMileage(S).length===0;
+    if(g[3]==='payments')none=S.taxPayments.length===0;
+    return {key:g[0],label:g[1],none:none};
+  })};
+  groups.push(gen);
+  CHECK_GROUPS.forEach(function(g){
+    if(!g.occ.some(function(o){return occ.indexOf(o)>=0}))return;
+    groups.push({title:g.title,items:g.items.map(function(it){
+      var none=false;
+      if(it[2]==='@mileage')none=yMileage(S).length===0;else if(it[2])none=!(by[it[2]]>0);
+      return {key:it[0],label:it[1],none:none};
+    })});
+  });
+  return groups;
+}
+function checklistProgress(){
+  var total=0,done=0;
+  activeChecklist().forEach(function(g){g.items.forEach(function(i){total++;if(S.checklist[i.key])done++})});
+  return {total:total,done:done};
+}
+function checklistHTML(){
+  var p=checklistProgress();
+  return '<section class="card" id="checklist" aria-labelledby="ckH"><div class="card-head"><div><h2 class="card-title" id="ckH">Tax Season Checklist</h2><p class="card-sub">What am I forgetting? A few prompts based on how you earn.</p></div><span class="badge" id="ckProg">'+p.done+' of '+p.total+' reviewed</span></div>'+
+    '<div class="notice" style="margin-bottom:8px">These are organizational prompts, not claims that every item is deductible. “None logged yet” just means you haven’t added entries in that area.</div>'+
+    activeChecklist().map(function(g){return '<div class="chk-group"><h3>'+esc(g.title)+'</h3>'+g.items.map(function(i){return '<label class="chk"><input type="checkbox" data-check="'+i.key+'"'+(S.checklist[i.key]?' checked':'')+'><span class="t">'+esc(i.label)+'</span>'+(i.none?'<span class="badge plain">None logged yet</span>':'')+'</label>'}).join('')+'</div>'}).join('')+
+    '<p class="muted" style="font-size:13.5px;margin-top:14px">Tailor this list under Settings → Income sources.</p></section>';
+}
+
+/* ---------- Reports ---------- */
+views.reports=function(){
+  var T=taxScope(S),est=calculateTaxEstimate(S),res=calculateTaxReserve(S,est),mil=calculateMileageDeduction(T),y=S.settings.taxYear;
+  var eb=expenseByCategory(T),ib=incomeBySource(T);
+  var eRows=Object.keys(eb).filter(function(k){return eb[k]>0}).sort(function(a,b){return eb[b]-eb[a]}),iRows=Object.keys(ib).sort(function(a,b){return ib[b]-ib[a]});
+  var emax=eRows.length?eb[eRows[0]]:1,imax=iRows.length?ib[iRows[0]]:1;
+  var list=function(rows,map,max){return rows.length?'<div class="bars-list">'+rows.map(function(k){return '<div class="row"><div class="top"><span>'+esc(k)+'</span><span class="num">'+money(map[k])+'</span></div><div class="bar" aria-hidden="true"><i style="width:'+(map[k]/max*100).toFixed(1)+'%"></i></div></div>'}).join('')+'</div>':'<p class="muted">Nothing logged yet.</p>'};
+  return '<div class="page">'+pageHeadAll(y+' Tax Summary','A clean snapshot you can share with an accountant or keep beside you at tax time.',
+    '<button class="btn btn-primary" data-act="exportPDF">'+ic('download',18)+'Download PDF Summary</button><button class="btn btn-ghost" data-act="exportCSV">'+ic('download',18)+'Export CSV</button><button class="btn btn-ghost noprint" data-act="printReport">'+ic('print',18)+'Print</button>')+
+   (S.settings.demo?'<div class="banner" role="status"><span>🧪 This report uses demo data.</span><button class="btn btn-ghost btn-sm" data-act="clearDemo">Clear demo data</button></div>':'')+
+   '<section class="grid-4">'+metric('income','Total Income',money(est.income),'')+metric('expenses','Total Expenses',money(est.expenses),'potential business expenses')+metric('dashboard','Estimated Business Profit',money(est.rawProfit),'after expenses and mileage',est.rawProfit<0?'neg':'')+metric('mileage','Business Miles',num(mil.miles,1),mil.missing?'Enter a mileage rate':'')+'</section>'+
+   '<section class="grid-3">'+metric('mileage','Estimated Mileage Amount',mil.missing?'Rate needed':money(mil.amount),'')+metric('shield','Tax Reserve',money(S.settings.setAside),'set aside so far')+metric('tax','Estimated Tax',money(est.totalTax),'estimated only')+'</section>'+
+   '<div class="grid-2" style="align-items:start"><section class="card"><h2 class="card-title" style="margin-bottom:16px">Expense categories</h2>'+list(eRows,eb,emax)+'<p class="muted" style="font-size:13.5px;margin-top:14px">Potential business amounts after business-use percentage'+(mil.amount>0?'. Mileage ('+money(mil.amount)+') is listed separately.':'.')+'</p></section>'+
+   '<section class="card"><h2 class="card-title" style="margin-bottom:16px">Income sources</h2>'+list(iRows,ib,imax)+'</section></div>'+
+   '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Estimated tax</h2><div class="kv"><div><span class="k">Self-employment tax</span><span class="v">'+money0(est.seTax)+'</span></div><div><span class="k">Federal income tax</span><span class="v">'+money0(est.incomeTax)+'</span></div><div class="total"><span class="k">Estimated total tax</span><span class="v">'+money0(est.totalTax)+'</span></div><div><span class="k">Estimated payments logged</span><span class="v">'+money(est.paidQ)+'</span></div><div><span class="k">Amount set aside</span><span class="v">'+money(res.saved)+'</span></div></div></section>'+
+   checklistHTML()+
+   '<div class="notice">TaxBloom is an organizational tool and does not prepare or file your tax return. Estimates only. Not tax advice.</div></div>';
+};
+
+/* ---------- Settings ---------- */
+
+function optListHTML(kind,list){
+  return '<ul class="opt-list">'+list.map(function(o){
+    var other=o==='Other';
+    return '<li class="opt-row"><span class="nm">'+esc(o)+'</span>'+(other?'<span class="lock">Always available</span>':
+      '<button class="btn btn-ghost btn-sm" data-act="renameOpt" data-kind="'+kind+'" data-name="'+esc(o)+'">Rename</button><button class="btn btn-ghost btn-sm" data-act="delOpt" data-kind="'+kind+'" data-name="'+esc(o)+'" aria-label="Delete '+esc(o)+'">'+ic('trash',16)+'</button>')+'</li>';
+  }).join('')+'</ul><form class="opt-add" data-optform="'+kind+'" novalidate><label class="sr" for="add-'+kind+'">New option</label><input type="text" id="add-'+kind+'" maxlength="40" placeholder="Add an option" autocomplete="off"><button type="submit" class="btn btn-primary">Add</button></form>';
+}
+function bizSettingsHTML(){
+  return '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Your businesses</h2><p class="card-sub" style="margin-bottom:14px">Each business keeps its own income, expenses, receipts, mileage and checklist. Your tax estimate combines all of them, since taxes are figured on you, not on each business.</p><ul class="opt-list">'+
+    S.businesses.map(function(b){var cur=b.id===S.activeId;
+      return '<li class="opt-row"><span class="nm">'+esc(b.name)+(cur?' <span class="lock">(viewing now)</span>':'')+'</span>'+
+        (cur?'':'<button class="btn btn-ghost btn-sm" data-act="switchBiz" data-id="'+b.id+'">Switch to</button>')+
+        '<button class="btn btn-ghost btn-sm" data-act="renameBiz" data-id="'+b.id+'">Rename</button>'+
+        (S.businesses.length>1?'<button class="btn btn-ghost btn-sm" data-act="delBiz" data-id="'+b.id+'" aria-label="Delete '+esc(b.name)+'">'+ic('trash',16)+'</button>':'')+'</li>';
+    }).join('')+'</ul>'+(S.businesses.length<MAX_BIZ?'<button class="btn btn-ghost" data-act="addBiz">+ Add a business</button>':'<p class="hint">You’ve reached the limit of '+MAX_BIZ+' businesses.</p>')+'</section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Dropdown options</h2><p class="card-sub" style="margin-bottom:14px">Customize the choices in your forms for <strong>'+esc(activeBiz(S).name)+'</strong>. Renaming updates your existing entries. Deleting an option moves its entries to “Other”.</p><div class="opt-grid"><div><h3 class="card-title" style="font-size:15px;margin-bottom:10px">Income sources</h3>'+optListHTML('income',S.incomeSources)+'</div><div><h3 class="card-title" style="font-size:15px;margin-bottom:10px">Expense categories</h3>'+optListHTML('expense',S.expenseCats)+'</div></div></section>';
+}
+views.settings=function(){
+  var st=S.settings,modeOpts=[['auto','Based on my tax estimate'],['percent','A percentage of my profit'],['amount','A fixed amount']];
+  return '<div class="page">'+pageHead('Settings','Make TaxBloom fit how you work. Everything saves automatically on this device.')+
+  bizSettingsHTML()+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:16px">Profile</h2><div class="form-grid">'+setField('First name (optional)','name','text',st.name)+
+    setField('Appearance','theme','select',st.theme,{options:[['light','Light'],['dark','Dark'],['auto','Match my device']]})+'</div></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:16px">Tax profile</h2><div class="form-grid">'+
+    setField('Tax year','taxYear','select',st.taxYear,{options:[[TAX_YEAR,String(TAX_YEAR)]],hint:'TaxBloom’s rates and dates cover '+TAX_YEAR+' for now.'})+
+    setField('Filing status','filingStatus','select',st.filingStatus,{options:FILING})+
+    '<div class="span-2 field"><span class="flabel" id="occL">Income sources</span><div class="hint">What you do. This personalizes your Tax Season Checklist.</div><div class="chips" role="group" aria-labelledby="occL" style="margin-top:6px">'+OCCUPATIONS.map(function(o){return '<label class="pick"><input type="checkbox" data-occ="'+esc(o)+'"'+(st.occupations.indexOf(o)>=0?' checked':'')+'><span>'+esc(o)+'</span></label>'}).join('')+'</div></div></div></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:16px">Estimate inputs</h2><div class="form-grid">'+
+    setField('Other household income','otherIncome','money',st.otherIncome,{suffix:'-set'})+setField('Estimated withholding','withholding','money',st.withholding,{suffix:'-set'})+
+    setField('Dependents','dependents','int',st.dependents,{suffix:'-set'})+setField('Tax credits','credits','money',st.credits,{suffix:'-set'})+'</div></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Mileage rate</h2><p class="card-sub" style="margin-bottom:16px">Enter the IRS rate for each period of your tax year, in cents per mile. TaxBloom uses the rate that matches each trip’s date. Defaults are the published 2026 IRS rates (72.5¢ Jan–Jun, 76¢ Jul–Dec). Verify at irs.gov.</p><div class="form-grid">'+
+    setField('January–June rate','mileageRateH1','cents',st.mileageRateH1)+setField('July–December rate','mileageRateH2','cents',st.mileageRateH2)+'</div></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:16px">Tax reserve goal</h2><div class="form-grid">'+
+    setField('Goal is','reserveMode','select',st.reserveMode,{options:modeOpts})+
+    (st.reserveMode==='percent'?setField('Percentage of profit','reserveValue','percent',st.reserveValue):st.reserveMode==='amount'?setField('Fixed reserve amount','reserveValue','money',st.reserveValue):'')+
+    setField('Already set aside','setAside','money',st.setAside,{suffix:'-set'})+'</div></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Demo data</h2><p class="card-sub" style="margin-bottom:12px">Fill TaxBloom with sample entries to look around. Your own entries are never touched when you clear it.</p><button class="switch" role="switch" aria-checked="'+(st.demo?'true':'false')+'" data-act="toggleDemo"><span class="track"></span>Try Demo Data</button></section>'+
+  '<section class="card"><h2 class="card-title" style="margin-bottom:6px">Data management</h2><p class="card-sub" style="margin-bottom:16px">Back up everything, move it to another device, or start fresh.</p><div class="head-actions">'+
+    '<button class="btn btn-ghost" data-act="exportJSON">'+ic('download',18)+'Export all data</button><button class="btn btn-ghost" data-act="importJSON">'+ic('upload',18)+'Import data</button><button class="btn btn-danger" data-act="deleteAll">'+ic('trash',18)+'Delete all data</button></div>'+
+    '<div class="notice" style="margin-top:18px">🔒 TaxBloom stores your information locally on your device. Your financial information is not sent to a TaxBloom server.</div></section>'+
+  '</div>';
+};
+
+/* =====================================================================
+   RENDER (shell + gate)
+   ===================================================================== */
+function navItem(r,mobile){
+  var label=r[1],cur=ui.route===r[0]?' aria-current="page"':'';
+  return '<button data-act="nav" data-to="'+r[0]+'"'+cur+'>'+ic(r[0],mobile?22:21)+'<span>'+(mobile&&r[0]==='dashboard'?'Home':mobile&&r[0]==='tax'?'Tax':label)+'</span></button>';
+}
+function renderNav(){
+  $('#sideNav').innerHTML=ROUTES.map(function(r){return navItem(r,false)}).join('');
+  var m=[ROUTES[0],ROUTES[1],ROUTES[2],ROUTES[5]].map(function(r){return navItem(r,true)}).join('');
+  var more=['receipts','mileage','reports','settings'].indexOf(ui.route)>=0;
+  $('#bottomNav').innerHTML=m+'<button data-act="moreMenu"'+(more?' aria-current="page"':'')+' aria-haspopup="dialog">'+ic('more',22)+'<span>More</span></button>';
+  $('#sideYear').textContent=S.settings.taxYear;
+  var bb='<button class="biz-btn" data-act="bizMenu" aria-haspopup="dialog" aria-label="Business: '+esc(activeBiz(S).name)+'. Switch or manage businesses"><span class="n">'+esc(activeBiz(S).name)+'</span><span aria-hidden="true">▾</span></button>';
+  $('#sideBiz').innerHTML=bb;$('#bizBar').innerHTML=bb;
+}
+var lastNarrow=null;
+function render(){
+  applyTheme();
+  var shell=$('#shell'),gate=$('#gate');
+  if(!S.settings.onboarded){shell.hidden=true;gate.hidden=false;renderGate();return}
+  gate.hidden=true;shell.hidden=false;
+  renderNav();
+  var view=$('#view');
+  view.innerHTML=views[ui.route]();
+  lastNarrow=isNarrow();
+  if(ui.route==='receipts')loadThumbs();
+  if(ui.route==='tax'&&ui.taxTab==='reserve')bindAsideForm();
+}
+function bindAsideForm(){
+  var f=$('#asideForm');if(!f)return;
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var n=parseMoney($('#asideAmt').value),err=$('#asideErr');
+    if(isNaN(n)||n<0){err.textContent='Enter an amount of $0 or more.';$('#asideAmt').setAttribute('aria-invalid','true');return}
+    S.settings.setAside=Math.round(n*100)/100;save();
+    $('#reserveWrap').innerHTML=reserveBlock();bindAsideForm();toast('Progress updated');
+  });
+}
+function applyTheme(){
+  var t=S.settings.theme,root=document.documentElement;
+  if(t==='dark')root.setAttribute('data-theme','dark');else if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme','light');
+}
+function commit(msg){save();render();if(msg)toast(msg)}
+
+/* ---------- Landing + onboarding ---------- */
+function landingHTML(){
+  var feats=[['income','Income','Track every payment.'],['expenses','Expenses','Know where your money is going.'],['receipts','Receipts','Keep supporting documents organized.'],['mileage','Mileage','Maintain your business mileage log.'],['tax','Tax Estimate','See what you may want to set aside.'],['reports','Reports','Walk into tax season organized.']];
+  return '<div class="land"><div class="land-top"><div class="brand"><span class="bloom-mark" aria-hidden="true">🌸</span><span>TaxBloom</span></div><button class="btn btn-ghost" data-act="tryDemo">Try Demo</button></div>'+
+   '<main id="landMain" tabindex="-1" style="outline:none"><section class="hero"><div><h1>Taxes shouldn’t feel like a January emergency.</h1>'+
+   '<p class="lead">TaxBloom helps self-employed people organize income, expenses, receipts, mileage, and tax estimates all year long.</p>'+
+   '<div class="cta"><button class="btn btn-primary" data-act="startOb" style="min-height:52px;padding:14px 26px;font-size:16px">Start Organizing</button><button class="btn btn-ghost" data-act="tryDemo" style="min-height:52px;padding:14px 26px;font-size:16px">Try Demo</button></div>'+
+   '<p class="fine">No account. No server. Your data stays on this device.</p></div>'+
+   '<div class="card sample" aria-label="Sample tax reserve">'+bloomSVG(0.72,230,true,'Sample tax reserve, 72 percent funded')+'<div class="big">$2,100 <span class="muted" style="font:500 17px var(--sans)">of $2,900</span></div><p class="muted">Sample tax reserve. Your numbers build from what you add.</p></div></section>'+
+   '<section aria-labelledby="evH"><h2 id="evH">Everything in one place</h2><div class="feat">'+feats.map(function(f){return '<div><div class="dot">'+ic(f[0],22)+'</div><h3>'+f[1]+'</h3><p>'+f[2]+'</p></div>'}).join('')+'</div></section>'+
+   '<section class="final-cta"><h2>Your future self will thank you. 🌸</h2><button class="btn btn-primary" data-act="startOb" style="min-height:52px;padding:14px 26px;font-size:16px">Start Organizing</button></section></main>'+
+   '<p class="disclaimer" style="padding-left:0;padding-right:0"><span style="display:block;border-top:1px solid var(--line);padding-top:16px;max-width:100ch">TaxBloom is an educational and organizational tool, not tax, legal, or financial advice. Tax estimates are simplified and may not reflect your actual tax liability. Tax laws and rates can change. Verify current IRS guidance or consult a qualified tax professional.</span></p></div>';
+}
+function onboardingHTML(){
+  var s=ui.obStep,ob=ui.ob,steps='<div class="steps" aria-hidden="true">'+[1,2,3,4,5].map(function(i){return '<i class="'+(i<=s?'on':'')+'"></i>'}).join('')+'</div><div class="muted" style="font-size:14px">Step '+s+' of 5</div>';
+  var back='<button class="btn btn-ghost" data-act="obBack">Back</button>',body='';
+  if(s===1)body='<h1 tabindex="-1">Welcome to TaxBloom 🌸</h1><p class="welcome">Taxes are easier when you don’t have to reconstruct your entire year in January.</p><div class="nav-row"><button class="btn btn-ghost" data-act="obExit">Back</button><button class="btn btn-primary" data-act="obNext">Get Started</button></div>';
+  if(s===2)body='<h1 tabindex="-1">What do you do?</h1><p class="muted">Pick all that apply. This tailors your checklist.</p><div class="picks" role="group" aria-label="What you do">'+OCCUPATIONS.map(function(o){return '<label class="pick"><input type="checkbox" name="occ" value="'+esc(o)+'"'+(ob.occupations.indexOf(o)>=0?' checked':'')+'><span>'+esc(o)+'</span></label>'}).join('')+'</div><div class="nav-row">'+back+'<button class="btn btn-primary" data-act="obNext">Continue</button></div>';
+  if(s===3)body='<h1 tabindex="-1">What tax year are you tracking?</h1><div class="picks" role="radiogroup" aria-label="Tax year"><label class="pick"><input type="radio" name="year" value="'+TAX_YEAR+'" checked><span>'+TAX_YEAR+'</span></label></div><p class="muted">TaxBloom’s rates and due dates cover '+TAX_YEAR+' for now.</p><div class="nav-row">'+back+'<button class="btn btn-primary" data-act="obNext">Continue</button></div>';
+  if(s===4)body='<h1 tabindex="-1">How do you usually file?</h1><div class="stack" role="radiogroup" aria-label="Filing status">'+[['single','Single'],['mfj','Married Filing Jointly'],['mfs','Married Filing Separately'],['hoh','Head of Household'],['single','Other']].map(function(o,i){var val=i===4?'other':o[0];return '<label class="pick block"><input type="radio" name="filing" value="'+val+'"'+(ob.filing===val?' checked':'')+'><span>'+o[1]+'</span></label>'}).join('')+'</div><p class="muted" style="font-size:14px">If you choose Other, estimates use Single (more conservative). You can change this anytime in Settings.</p><div class="nav-row">'+back+'<button class="btn btn-primary" data-act="obNext">Continue</button></div>';
+  if(s===5)body='<h1 tabindex="-1">How much have you already set aside for taxes?</h1><div class="field"><label for="obAmt" class="sr">Amount set aside</label><div class="money-wrap"><span aria-hidden="true">$</span><input type="text" id="obAmt" inputmode="decimal" placeholder="0.00" value="'+esc(ob.setAside)+'" aria-describedby="obErr" style="width:100%;min-height:52px;padding:12px 14px 12px 28px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:18px"></div><div class="err" id="obErr" role="alert"></div><div class="hint">A rough number is fine. You can update it anytime.</div></div><div class="nav-row">'+back+'<button class="btn btn-primary" data-act="obFinish">Go to my dashboard</button></div>';
+  return '<div class="ob"><div class="card"><div class="brand" style="padding:0">🌸 TaxBloom</div>'+steps+body+'</div></div>';
+}
+function renderGate(){
+  var g=$('#gate');
+  g.innerHTML=ui.gate==='onboarding'?onboardingHTML():landingHTML();
+  var h=$('h1',g);if(h&&ui.gate==='onboarding')h.focus({preventScroll:true});
+}
+function captureOb(){
+  var g=$('#gate');
+  if(ui.obStep===2)ui.ob.occupations=$$('input[name=occ]:checked',g).map(function(i){return i.value});
+  if(ui.obStep===4){var r=$('input[name=filing]:checked',g);if(r)ui.ob.filing=r.value}
+  if(ui.obStep===5)ui.ob.setAside=($('#obAmt',g)||{}).value||'';
+}
+
+/* =====================================================================
+   EXPORTS: CSV, PDF, JSON
+   ===================================================================== */
+function csvCell(v){
+  if(typeof v==='number')return String(v);
+  var s=String(v==null?'':v);
+  if(/^[=+\-@\t\r]/.test(s))s="'"+s;
+  if(/[",\n\r]/.test(s))s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function bizScope(b){return {settings:S.settings,income:b.income,expenses:b.expenses,receipts:b.receipts,mileage:b.mileage}}
+function buildCSV(){
+  var rows=[['Type','Date','Description','Category or source','Amount','Business use %','Potential business amount','Miles','Rate per mile','Notes','Business']];
+  S.businesses.forEach(function(b){
+    var B=bizScope(b),nm=b.name;
+    sortedBy(yIncome(B)).reverse().forEach(function(i){rows.push(['Income',i.date,i.description,i.source,Number(i.amount),'','','','',i.notes||'',nm])});
+    sortedBy(yExpenses(B)).reverse().forEach(function(e){rows.push(['Expense',e.date,e.description,e.category,Number(e.amount),e.bizPct==null?100:e.bizPct,Math.round(bizAmount(e)*100)/100,'','',e.notes||'',nm])});
+    sortedBy(yMileage(B)).reverse().forEach(function(t){var r=mileageRateFor(S,t.date);rows.push(['Mileage',t.date,t.from+' to '+t.to+' – '+t.purpose,'Business mileage',r==null?'':Math.round(t.miles*r*100)/100,'','',t.miles,r==null?'':r,'',nm])});
+  });
+  S.taxPayments.slice().sort(function(a,b){return a.q-b.q}).forEach(function(p){rows.push(['Estimated tax payment',p.date,'Payment '+p.q,'Federal estimated tax',Number(p.amount),'','','','','',''])});
+  var est=calculateTaxEstimate(S);
+  rows.push([]);
+  rows.push(['Summary (estimates only, not tax advice)']);
+  [['Total income',est.income],['Potential business expenses',Math.round(est.expenses*100)/100],['Mileage amount',Math.round(est.mileage*100)/100],['Estimated business profit',Math.round(est.rawProfit*100)/100],['Estimated self-employment tax',Math.round(est.seTax)],['Estimated federal income tax',Math.round(est.incomeTax)],['Estimated total tax',Math.round(est.totalTax)]].forEach(function(r){rows.push(['Summary','','',r[0],r[1],'','','','',''])});
+  return '\ufeff'+rows.map(function(r){return r.map(csvCell).join(',')}).join('\r\n');
+}
+function pdfSafe(s){return String(s==null?'':s).replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/→/g,'to').replace(/[^\x20-\x7E\u00A0-\u00FF]/g,'')}
+function buildPDF(){
+  var jsPDF=window.jspdf.jsPDF,doc=new jsPDF({unit:'pt',format:'letter'});
+  var W=612,H=792,M=50,y=M,ink=[45,38,41],muted=[107,95,100],rose=[156,67,88];
+  var T=taxScope(S),est=calculateTaxEstimate(S),res=calculateTaxReserve(S,est),mil=calculateMileageDeduction(T),yr=S.settings.taxYear;
+  function ensure(h){if(y+h>H-M-26){doc.addPage();y=M}}
+  function text(t,x,yy,o){doc.text(pdfSafe(t),x,yy,o)}
+  function section(t){ensure(48);y+=14;doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.setTextColor(rose[0],rose[1],rose[2]);text(t,M,y);y+=6;doc.setDrawColor(233,220,210);doc.setLineWidth(.8);doc.line(M,y,W-M,y);y+=15}
+  function row(l,v,bold){ensure(18);doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(10.5);doc.setTextColor(ink[0],ink[1],ink[2]);text(l,M,y);text(v,W-M,y,{align:'right'});y+=16}
+  function note(t){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(muted[0],muted[1],muted[2]);doc.splitTextToSize(pdfSafe(t),W-2*M).forEach(function(line){ensure(12);doc.text(line,M,y);y+=12})}
+  function table(cols,rows){
+    ensure(40);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(muted[0],muted[1],muted[2]);
+    var x=M;cols.forEach(function(c){text(c.l,c.a==='r'?x+c.w:x,y,{align:c.a==='r'?'right':'left'});x+=c.w+8});
+    y+=5;doc.setDrawColor(233,220,210);doc.line(M,y,W-M,y);y+=12;
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(ink[0],ink[1],ink[2]);
+    rows.forEach(function(r){
+      ensure(15);var xx=M;
+      cols.forEach(function(c,i){var t=pdfSafe(r[i]);if(c.a!=='r'){var parts=doc.splitTextToSize(t,c.w);t=parts[0]+(parts.length>1?'...':'')}text(t,c.a==='r'?xx+c.w:xx,y,{align:c.a==='r'?'right':'left'});xx+=c.w+8});
+      y+=14;
+    });
+  }
+  doc.setFont('helvetica','bold');doc.setFontSize(24);doc.setTextColor(rose[0],rose[1],rose[2]);text('TaxBloom',M,y+8);
+  doc.setFontSize(18);doc.setTextColor(ink[0],ink[1],ink[2]);text(yr+' Tax Summary',M,y+34);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(muted[0],muted[1],muted[2]);text('Prepared '+fmtDate(todayISO())+'  |  Estimates only, not tax advice'+(S.businesses.length>1?'  |  '+S.businesses.length+' businesses combined':''),M,y+52);
+  if(S.settings.demo){doc.setTextColor(rose[0],rose[1],rose[2]);doc.setFont('helvetica','bold');text('DEMO DATA - these figures are examples, not real records',M,y+68);y+=16}
+  y+=70;
+  section('Snapshot');
+  row('Total income',money(est.income));row('Potential business expenses','-'+money(est.expenses));row('Mileage amount ('+num(mil.miles,1)+' business miles)',mil.missing?'rate needed':'-'+money(est.mileage));
+  row('Estimated business profit',money(est.rawProfit),true);
+  section('Estimated tax (simplified)');
+  row('Self-employment tax',money0(est.seTax));row('Federal income tax',money0(est.incomeTax));row('Estimated total tax',money0(est.totalTax),true);
+  row('Withholding and other payments',money0(est.withholding+est.otherPaid));row('Estimated payments logged',money0(est.paidQ));row('Amount set aside',money0(res.saved));row('Suggested tax reserve still needed',money0(est.stillOwed),true);
+  y+=2;note('Based on '+(FILING.filter(function(f){return f[0]===est.fs})[0]||[])[1]+' filing status, the 2026 standard deduction and federal brackets. State taxes, itemized deductions, credits eligibility and other items are not modeled.');
+  var eb=expenseByCategory(T),ib=incomeBySource(T);
+  section('Expense categories (potential business amounts)');
+  var ek=Object.keys(eb).filter(function(k){return eb[k]>0}).sort(function(a,b){return eb[b]-eb[a]});
+  if(!ek.length)note('No expenses logged.');ek.forEach(function(k){row(k,money(eb[k]))});
+  section('Income sources');
+  var ik=Object.keys(ib).sort(function(a,b){return ib[b]-ib[a]});
+  if(!ik.length)note('No income logged.');ik.forEach(function(k){row(k,money(ib[k]))});
+  section('Estimated tax payments');
+  QUARTERS.forEach(function(Q){var p=S.taxPayments.filter(function(x){return x.q===Q.q})[0];row('Payment '+Q.q+' (due '+fmtDate(Q.due)+')',p?money(p.amount)+' paid '+fmtDate(p.date):'Not recorded')});
+  note('Verify due dates with the IRS.');
+  var inc=sortedBy(yIncome(T)).reverse();
+  if(inc.length){doc.addPage();y=M;section('Appendix A: Income detail');table([{l:'Date',w:62},{l:'Description',w:230},{l:'Source',w:90},{l:'Amount',w:100,a:'r'}],inc.map(function(i){return [fmtDate(i.date),i.description,i.source,money(i.amount)]}))}
+  var exs=sortedBy(yExpenses(T)).reverse();
+  if(exs.length){ensure(120);if(!inc.length){doc.addPage();y=M}section('Appendix B: Expense detail');table([{l:'Date',w:62},{l:'Description',w:170},{l:'Category',w:110},{l:'Use %',w:38,a:'r'},{l:'Amount',w:60,a:'r'},{l:'Potential',w:62,a:'r'}],exs.map(function(e){return [fmtDate(e.date),e.description,e.category,num(e.bizPct==null?100:e.bizPct,0)+'%',money(e.amount),money(bizAmount(e))]}))}
+  var trips=sortedBy(yMileage(T)).reverse();
+  if(trips.length){ensure(120);section('Appendix C: Mileage log');table([{l:'Date',w:62},{l:'Trip',w:170},{l:'Purpose',w:150},{l:'Miles',w:50,a:'r'},{l:'Amount',w:60,a:'r'}],trips.map(function(t){var r=mileageRateFor(S,t.date);return [fmtDate(t.date),t.from+' to '+t.to,t.purpose,num(t.miles,1),r==null?'-':money(t.miles*r)]}))}
+  var n=doc.getNumberOfPages(),i;
+  for(i=1;i<=n;i++){
+    doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(muted[0],muted[1],muted[2]);
+    var d=doc.splitTextToSize('TaxBloom is an organizational tool and does not prepare or file your tax return. It is an educational and organizational tool, not tax, legal, or financial advice. Tax estimates are simplified and may not reflect your actual tax liability. Verify current IRS guidance or consult a qualified tax professional.',W-2*M-50);
+    d.forEach(function(line,k){doc.text(line,M,H-M+8+k*9)});
+    doc.text('Page '+i+' of '+n,W-M,H-M+8,{align:'right'});
+  }
+  return doc.output('blob');
+}
+function exportCSV(){
+  saveFile('taxbloom-'+S.settings.taxYear+'-ledger.csv',buildCSV(),'text/csv;charset=utf-8').then(function(r){if(r==='saved')toast('CSV ready');else if(r==='failed')toast('Couldn’t save the CSV. Please try again.','bad')});
+}
+function exportPDF(){
+  if(!(window.jspdf&&window.jspdf.jsPDF)){toast('The PDF tool didn’t load, so we’re opening the print view instead.','warn');setTimeout(function(){window.print()},300);return}
+  try{
+    var blob=buildPDF();
+    saveFile('taxbloom-'+S.settings.taxYear+'-summary.pdf',blob,'application/pdf').then(function(r){if(r==='saved')toast('PDF summary ready');else if(r==='failed')toast('Couldn’t save the PDF. Try Print instead.','bad')});
+  }catch(e){toast('Couldn’t build the PDF. Try Print instead.','bad')}
+}
+function blobToDataURL(blob){return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=function(){rej(fr.error)};fr.readAsDataURL(blob)})}
+function dataURLToBlob(u){var p=u.split(','),mime=(/data:([^;]+)/.exec(p[0])||[])[1]||'application/octet-stream',bin=atob(p[1]),arr=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime})}
+function exportJSON(){
+  var files={};
+  var allRec=[];S.businesses.forEach(function(b){allRec=allRec.concat(b.receipts)});
+  var jobs=allRec.filter(function(r){return r.fileId}).map(function(r){
+    return IDB.get(r.fileId).then(function(rec){if(rec&&rec.blob)return blobToDataURL(rec.blob).then(function(u){files[r.fileId]={name:rec.name,type:rec.type,dataUrl:u}})}).catch(function(){});
+  });
+  Promise.all(jobs).then(function(){
+    var payload={app:'TaxBloom',version:2,exportedAt:new Date().toISOString(),data:S,files:files};
+    return saveFile('taxbloom-backup-'+todayISO()+'.json',JSON.stringify(payload),'application/json');
+  }).then(function(r){if(r==='saved')toast('Backup ready. Keep it somewhere safe.');else if(r==='failed')toast('Couldn’t save the backup. Please try again.','bad')});
+}
+function importCounts(d){
+  var bs=Array.isArray(d.businesses)?d.businesses:[d],inc=0,ex=0;
+  bs.forEach(function(b){inc+=(b.income||[]).length;ex+=(b.expenses||[]).length});
+  return inc+' income, '+ex+' expense entries'+(bs.length>1?' across '+bs.length+' businesses':'');
+}
+function importData(file){
+  var fr=new FileReader();
+  fr.onerror=function(){toast('Couldn’t read that file.','bad')};
+  fr.onload=function(){
+    var p;
+    try{p=JSON.parse(fr.result)}catch(e){toast('That file isn’t a valid TaxBloom backup.','bad');return}
+    if(!p||p.app!=='TaxBloom'||!p.data||typeof p.data!=='object'||!p.data.settings){toast('That file isn’t a TaxBloom backup.','bad');return}
+    confirmModal({title:'Replace your data?',message:'Importing will replace everything currently on this device with the contents of this backup ('+importCounts(p.data)+').',confirmLabel:'Replace my data',danger:true,onConfirm:function(){
+      var d=normalizeState(p.data);d.settings.taxYear=TAX_YEAR;
+      Object.keys(urlCache).forEach(function(k){try{URL.revokeObjectURL(urlCache[k])}catch(e){}delete urlCache[k]});
+      S=d;save();
+      var chain=IDB.clear().catch(function(){});
+      Object.keys(p.files||{}).forEach(function(id){var f=p.files[id];chain=chain.then(function(){try{return IDB.put({id:id,name:f.name,type:f.type,blob:dataURLToBlob(f.dataUrl)})}catch(e){}}).catch(function(){})});
+      chain.then(function(){go('dashboard');toast('Backup imported')});
+    }});
+  };
+  fr.readAsText(file);
+}
+
+/* =====================================================================
+   ACTIONS (event delegation)
+   ===================================================================== */
+function find(arr,id){return arr.filter(function(x){return x.id===id})[0]}
+function pickRoute(r){go(r)}
+var A={
+  skip:function(){var m=$('#main');if(m)m.focus();else{var l=$('#landMain');if(l)l.focus()}},
+  nav:function(d){go(d.to)},
+  closeModal:function(){closeModal()},
+  bizMenu:function(){
+    openModal({title:'Your businesses',size:'sm',html:'<div class="sheet-list">'+S.businesses.map(function(b){
+      return '<button data-act="switchBiz" data-id="'+b.id+'"'+(b.id===S.activeId?' aria-current="true"':'')+'><span class="dot">'+(b.id===S.activeId?'✓':'')+'</span>'+esc(b.name)+'</button>';
+    }).join('')+(S.businesses.length<MAX_BIZ?'<button data-act="addBiz"><span class="dot">+</span>Add a business</button>':'')+'<button data-act="manageBiz"><span class="dot">⚙</span>Manage businesses &amp; options</button></div>'});
+  },
+  manageBiz:function(){closeModal(true);go('settings')},
+  switchBiz:function(d){
+    if(!S.businesses.some(function(b){return b.id===d.id}))return;
+    S.activeId=d.id;ui.incomeFilter='All';ui.incomeQ='';ui.expQ='';ui.expCat='All';ui.recQ='';
+    closeModal(true);save();render();toast('Now viewing '+activeBiz(S).name);
+  },
+  addBiz:function(){
+    if(S.businesses.length>=MAX_BIZ)return;
+    closeModal(true);
+    formModal({title:'Add a business',size:'sm',submit:'Add business',fields:[{name:'name',label:'Business name',type:'text',required:true,value:'',span:true}],
+      validate:null,onSubmit:function(v){
+        var nm=v.name.slice(0,40),b=newBiz(nm);S.businesses.push(b);S.activeId=b.id;
+        ui.incomeFilter='All';ui.incomeQ='';ui.expQ='';ui.expCat='All';ui.recQ='';commit('Added '+nm+'. You’re viewing it now.');
+      }});
+  },
+  renameBiz:function(d){
+    var b=find(S.businesses,d.id);if(!b)return;closeModal(true);
+    formModal({title:'Rename business',size:'sm',submit:'Save',fields:[{name:'name',label:'Business name',type:'text',required:true,value:b.name,span:true}],
+      onSubmit:function(v){b.name=v.name.slice(0,40);commit('Renamed')}});
+  },
+  delBiz:function(d){
+    var b=find(S.businesses,d.id);if(!b||S.businesses.length<2)return;closeModal(true);
+    confirmModal({title:'Delete “'+b.name+'”?',message:'This permanently removes its '+b.income.length+' income entries, '+b.expenses.length+' expenses, '+b.receipts.length+' receipts and '+b.mileage.length+' trips from this device. Export a backup first if you might need them.',requireText:'DELETE',confirmLabel:'Delete business',onConfirm:function(){
+      b.receipts.forEach(function(r){if(r.fileId){IDB.del(r.fileId).catch(function(){});if(urlCache[r.fileId]){try{URL.revokeObjectURL(urlCache[r.fileId])}catch(e){}delete urlCache[r.fileId]}}});
+      S.businesses=S.businesses.filter(function(x){return x.id!==b.id});
+      if(S.activeId===b.id)S.activeId=S.businesses[0].id;
+      commit('Business deleted');
+    }});
+  },
+  addOpt:function(kind,raw){
+    var list=kind==='income'?S.incomeSources:S.expenseCats,nm=String(raw||'').trim().replace(/\s+/g,' ').slice(0,40);
+    if(!nm){toast('Type a name first.','warn');return false}
+    if(list.some(function(x){return x.toLowerCase()===nm.toLowerCase()})){toast('That option already exists.','warn');return false}
+    var oi=list.indexOf('Other');if(oi>=0)list.splice(oi,0,nm);else list.push(nm);
+    commit('Added “'+nm+'”');return true;
+  },
+  renameOpt:function(d){
+    var kind=d.kind,list=kind==='income'?S.incomeSources:S.expenseCats,old=d.name;
+    if(old==='Other'||list.indexOf(old)<0)return;
+    formModal({title:'Rename option',size:'sm',submit:'Save',fields:[{name:'name',label:'New name',type:'text',required:true,value:old,span:true}],
+      onSubmit:function(v){
+        var nm=v.name.replace(/\s+/g,' ').trim().slice(0,40);
+        if(nm===old)return;
+        if(list.some(function(x){return x.toLowerCase()===nm.toLowerCase()&&x!==old})){toast('That option already exists.','warn');return false}
+        list[list.indexOf(old)]=nm;
+        if(kind==='income')S.income.forEach(function(r){if(r.source===old)r.source=nm});
+        else{S.expenses.forEach(function(r){if(r.category===old)r.category=nm});S.receipts.forEach(function(r){if(r.category===old)r.category=nm});if(ui.expCat===old)ui.expCat=nm}
+        commit('Renamed to “'+nm+'”');
+      }});
+  },
+  delOpt:function(d){
+    var kind=d.kind,list=kind==='income'?S.incomeSources:S.expenseCats,old=d.name;
+    if(old==='Other'||list.indexOf(old)<0)return;
+    var n=kind==='income'?S.income.filter(function(r){return r.source===old}).length:S.expenses.filter(function(r){return r.category===old}).length+S.receipts.filter(function(r){return r.category===old}).length;
+    confirmModal({title:'Remove “'+old+'”?',message:n?n+' existing '+(n===1?'entry uses':'entries use')+' it. They’ll be moved to “Other”.':'No entries use it.',confirmLabel:'Remove',onConfirm:function(){
+      list.splice(list.indexOf(old),1);
+      if(kind==='income')S.income.forEach(function(r){if(r.source===old)r.source='Other'});
+      else{S.expenses.forEach(function(r){if(r.category===old)r.category='Other'});S.receipts.forEach(function(r){if(r.category===old)r.category='Other'});if(ui.expCat===old)ui.expCat='All'}
+      commit('Removed “'+old+'”');
+    }});
+  },
+  moreMenu:function(){
+    var items=[['receipts','Receipts'],['mileage','Mileage'],['reports','Reports'],['settings','Settings']];
+    openModal({title:'More',size:'sm',html:'<div class="sheet-list">'+items.map(function(i){return '<button data-act="nav" data-to="'+i[0]+'"><span class="dot">'+ic(i[0],20)+'</span>'+i[1]+'</button>'}).join('')+'</div>'});
+  },
+  quickAdd:function(){
+    var items=[['addIncome','Add income','income'],['addExpense','Add expense','expenses'],['addReceipt','Upload a receipt','receipts'],['addTrip','Add a trip','mileage']];
+    openModal({title:'Quick add',size:'sm',html:'<div class="sheet-list">'+items.map(function(i){return '<button data-act="'+i[0]+'"><span class="dot">'+ic(i[2],20)+'</span>'+i[1]+'</button>'}).join('')+'</div>'});
+  },
+  addIncome:function(){incomeForm()},
+  editIncome:function(d){var r=find(S.income,d.id);if(r)incomeForm(r)},
+  delIncome:function(d){var r=find(S.income,d.id);if(!r)return;confirmModal({title:'Delete this income?',message:'“'+r.description+'” for '+money(r.amount)+'. Deleted transactions cannot be recovered unless you exported your data.',onConfirm:function(){S.income=S.income.filter(function(x){return x.id!==d.id});commit('Income deleted')}})},
+  addExpense:function(){expenseForm()},
+  editExpense:function(d){var r=find(S.expenses,d.id);if(r)expenseForm(r)},
+  delExpense:function(d){var r=find(S.expenses,d.id);if(!r)return;confirmModal({title:'Delete this expense?',message:'“'+r.description+'” for '+money(r.amount)+'. Deleted transactions cannot be recovered unless you exported your data.',onConfirm:function(){S.expenses=S.expenses.filter(function(x){return x.id!==d.id});commit('Expense deleted')}})},
+  addReceipt:function(){receiptForm()},
+  editReceipt:function(d){var r=find(S.receipts,d.id);if(r)receiptForm(r)},
+  viewReceipt:function(d){var r=find(S.receipts,d.id);if(r)viewReceipt(r)},
+  delReceipt:function(d){var r=find(S.receipts,d.id);if(!r)return;confirmModal({title:'Delete this receipt?',message:'The receipt from '+r.merchant+' and its attached file will be removed from this device. Deleted receipts cannot be recovered unless you exported your data.',onConfirm:function(){dropFile(r.fileId);S.receipts=S.receipts.filter(function(x){return x.id!==d.id});commit('Receipt deleted')}})},
+  addTrip:function(){tripForm()},
+  editTrip:function(d){var r=find(S.mileage,d.id);if(r)tripForm(r)},
+  delTrip:function(d){var r=find(S.mileage,d.id);if(!r)return;confirmModal({title:'Delete this trip?',message:r.from+' to '+r.to+' ('+num(r.miles,1)+' miles). Deleted trips cannot be recovered unless you exported your data.',onConfirm:function(){S.mileage=S.mileage.filter(function(x){return x.id!==d.id});commit('Trip deleted')}})},
+  incomeFilter:function(d){ui.incomeFilter=d.f;render();var b=$('.chip[data-f="'+d.f+'"]');if(b)b.focus()},
+  taxTab:function(d){ui.taxTab=d.tab;render();var b=$('#tab-'+d.tab);if(b)b.focus()},
+  goReserve:function(){go('tax',{tab:'reserve'})},
+  goChecklist:function(){go('reports',{scrollTo:'checklist',noFocus:true})},
+  goMileageSettings:function(){go('settings',{scrollTo:'s-mileageRateH1'});var i=$('#s-mileageRateH1');if(i)i.focus()},
+  setAside:function(){
+    formModal({title:'Update amount set aside',size:'sm',submit:'Save amount',fields:[{name:'amount',label:'Already set aside for taxes',type:'money',required:true,value:S.settings.setAside?Number(S.settings.setAside).toFixed(2):'',hint:'Enter the money you’ve saved for taxes and still have on hand.'}],
+      validate:null,onSubmit:function(v){S.settings.setAside=v.amount;commit('Amount set aside updated')}});
+  },
+  markPaid:function(d){markPaidForm(Number(d.q))},
+  unpaid:function(d){var q=Number(d.q);confirmModal({title:'Mark payment '+q+' as not paid?',message:'The recorded amount and date for this payment will be removed.',confirmLabel:'Mark not paid',onConfirm:function(){S.taxPayments=S.taxPayments.filter(function(p){return p.q!==q});commit('Payment '+q+' cleared')}})},
+  toggleDemo:function(){
+    if(S.settings.demo){confirmModal({title:'Clear demo data?',message:'Demo entries will be removed. Anything you added yourself stays.',confirmLabel:'Clear demo data',danger:false,onConfirm:function(){removeDemo();commit('Demo data cleared')}})}
+    else{addDemo();commit('Demo data added. You can clear it anytime.')}
+  },
+  clearDemo:function(){confirmModal({title:'Clear demo data?',message:'Demo entries will be removed. Anything you added yourself stays.',confirmLabel:'Clear demo data',danger:false,onConfirm:function(){removeDemo();commit('Demo data cleared')}})},
+  tryDemo:function(){addDemo();S.settings.onboarded=true;ui.route='dashboard';save();render();window.scrollTo(0,0);toast('Welcome! You’re viewing demo data.')},
+  startOb:function(){ui.gate='onboarding';ui.obStep=1;renderGate();window.scrollTo(0,0)},
+  obExit:function(){ui.gate='landing';renderGate()},
+  obBack:function(){captureOb();ui.obStep=Math.max(1,ui.obStep-1);renderGate()},
+  obNext:function(){captureOb();ui.obStep=Math.min(5,ui.obStep+1);renderGate();window.scrollTo(0,0)},
+  obFinish:function(){
+    var v=$('#obAmt').value.trim(),n=v===''?0:parseMoney(v);
+    if(isNaN(n)||n<0){$('#obErr').textContent='Enter an amount of $0 or more, or leave it blank.';$('#obAmt').focus();return}
+    S.settings.occupations=ui.ob.occupations.slice();
+    S.settings.filingStatus=ui.ob.filing==='other'?'single':ui.ob.filing;
+    S.settings.setAside=Math.round(n*100)/100;S.settings.onboarded=true;
+    ui.route='dashboard';save();render();window.scrollTo(0,0);toast('You’re all set. Welcome to TaxBloom 🌸');
+  },
+  exportCSV:exportCSV,exportPDF:exportPDF,
+  printReport:function(){window.print()},
+  exportJSON:exportJSON,
+  importJSON:function(){var i=$('#importFile');i.value='';i.click()},
+  deleteAll:function(){
+    confirmModal({title:'Delete all data?',message:'This permanently removes your income, expenses, receipts, mileage, payments and settings from this device. It cannot be undone unless you exported your data first.',requireText:'DELETE',confirmLabel:'Delete everything',onConfirm:function(){
+      Object.keys(urlCache).forEach(function(k){try{URL.revokeObjectURL(urlCache[k])}catch(e){}delete urlCache[k]});
+      try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(OLD_STORAGE_KEY)}catch(e){}
+      IDB.clear().catch(function(){});
+      S=defaultState();ui.gate='landing';ui.route='dashboard';ui.incomeFilter='All';ui.incomeQ='';ui.expQ='';ui.expCat='All';ui.recQ='';ui.taxTab='estimate';
+      render();window.scrollTo(0,0);toast('All data deleted');
+    }});
+  }
+};
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-act]');
+  if(!t||t.disabled)return;
+  var fn=A[t.dataset.act];
+  if(fn){e.preventDefault();fn(t.dataset,t,e)}
+});
+document.addEventListener('submit',function(e){
+  var f=e.target;
+  if(f&&f.dataset&&f.dataset.optform){e.preventDefault();var kind=f.dataset.optform,inp=f.querySelector('input');A.addOpt(kind,inp.value);var n=$('#add-'+kind);if(n)n.focus()}
+});
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.id==='incomeSearch'){ui.incomeQ=t.value;$('#incomeTable').innerHTML=incomeTableHTML()}
+  else if(t.id==='expSearch'){ui.expQ=t.value;$('#expTable').innerHTML=expenseTableHTML()}
+  else if(t.id==='recSearch'){ui.recQ=t.value;var pos=t.selectionStart;render();var n=$('#recSearch');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}}
+  else if(t.dataset&&t.dataset.setting&&(t.dataset.kind==='money'||t.dataset.kind==='cents'||t.dataset.kind==='int'||t.dataset.kind==='text'))onSetting(t,false);
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.id==='expCat'){ui.expCat=t.value;$('#expTable').innerHTML=expenseTableHTML()}
+  else if(t.id==='importFile'){if(t.files&&t.files[0])importData(t.files[0])}
+  else if(t.dataset&&t.dataset.setting)onSetting(t,true);
+  else if(t.dataset&&t.dataset.occ){
+    var o=t.dataset.occ,a=S.settings.occupations,i=a.indexOf(o);
+    if(t.checked&&i<0)a.push(o);if(!t.checked&&i>=0)a.splice(i,1);save();
+  }else if(t.dataset&&t.dataset.check){
+    S.checklist[t.dataset.check]=t.checked;save();
+    var p=checklistProgress(),b=$('#ckProg');if(b)b.textContent=p.done+' of '+p.total+' reviewed';
+  }
+});
+document.addEventListener('keydown',function(e){
+  var t=e.target;
+  if(t&&t.getAttribute&&t.getAttribute('role')==='tab'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){
+    var tabs=$$('[role=tab]',t.parentNode),i=tabs.indexOf(t),n=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];
+    e.preventDefault();n.click();
+  }
+});
+function onSetting(t,committed){
+  var name=t.dataset.setting,kind=t.dataset.kind,v;
+  if(kind==='money'){v=parseMoney(t.value);if(isNaN(v)||v<0)v=0;v=Math.round(v*100)/100}
+  else if(kind==='percent'){v=parseMoney(t.value);if(isNaN(v)||v<0)v=0;if(v>100)v=100}
+  else if(kind==='int'){v=parseInt(t.value,10);if(isNaN(v)||v<0)v=0;if(v>30)v=30}
+  else if(kind==='cents'){var c=parseMoney(t.value);v=isNaN(c)||c<=0?'':Math.round(c*1000)/100000}
+  else if(kind==='check')v=t.checked;
+  else if(kind==='radio'){if(!t.checked)return;v=t.value}
+  else if(name==='taxYear')v=TAX_YEAR;
+  else v=t.value;
+  if(name==='mileageRateH1'||name==='mileageRateH2')v=v===''?null:v;
+  S.settings[name]=v;save();
+  if(name==='theme')applyTheme();
+  if(name==='reserveMode'&&committed){render();var el=$('#s-reserveMode');if(el)el.focus();return}
+  if(name==='basis'||name==='qbi'||name==='filingStatus'){if(ui.route==='tax')refreshTax()}
+  else if(ui.route==='tax')refreshTax();
+}
+window.addEventListener('hashchange',function(){var r=ui.route;readHash();if(r!==ui.route&&S.settings.onboarded)render()});
+var rzT;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(function(){if(S.settings.onboarded&&ui.route==='dashboard'&&lastNarrow!==isNarrow())render()},150)});
+
+/* ---------- boot ---------- */
+readHash();
+if(!S.settings.onboarded)ui.gate='landing';
+render();
+})();
+</script>
+</body>
+</html>
